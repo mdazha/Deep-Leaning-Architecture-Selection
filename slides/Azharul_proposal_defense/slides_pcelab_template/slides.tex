@@ -1,0 +1,1254 @@
+\documentclass[8pt,xcolor=dvipsnames,compress]{beamer}
+\usepackage{ragged2e} 
+\usepackage{pcelab_theme}
+\usepackage{pcelab_style}
+\usepackage{multimedia}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{hyperref}
+%\usepackage[algoruled,longend]{algorithm2e}
+\usepackage{array}
+\graphicspath{ {./images/} }
+\usepackage{amsmath}
+\newcolumntype{C}{>{\centering\arraybackslash} m{1000.3in} }
+\newcolumntype{M}{>{\centering\arraybackslash} m{1000.in} }
+\everymath{\displaystyle}
+\long\def\/*#1*/{}
+
+%\beamertemplatenavigationsymbolsempty
+%\usepackage[square,numbers]{natbib}
+\usepackage{tcolorbox}
+\usepackage{rotating}
+\usepackage{booktabs,longtable,array}
+\usepackage{xcolor}
+\usepackage[export]{adjustbox}
+\usepackage{caption}
+\usepackage{subcaption}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\thetab}{\boldsymbol\theta}
+%===============================================================================
+% 					  Presentation Title and Author  
+%===============================================================================
+\title[Proposal Defense]{
+Deep Learning-Enabled Digital Twins with Quantified Uncertainty for Risk-Averse Management of Type 1 Diabetes}
+%\subtitle{Ph.D Proposal Defense}
+\author[Md Azharul Islam]{Md Azharul Islam}
+\institute[UB]{Department of Mechanical and Aerospace Engineering\\University at Buffalo\vspace{0.1in}\\Ph.D Research Proposal Presentation
+}
+
+\titlegraphic{\includegraphics[width=4cm]{PCE_logo1.png}}
+\date[]{December 1, 2025}
+%===============================================================================
+%===============================================================================
+
+
+
+\begin{document}
+
+%===============================================================================
+% SLIDE 0
+%===============================================================================
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+% %===============================================================================
+% 		 SLIDE 1
+% %===============================================================================
+\begin{frame}{Table of contents}
+    \tableofcontents
+\end{frame}
+%
+
+% %===============================================================================
+% 		 INTRODUCTION
+% %===============================================================================
+\section{Motivation}
+
+\begin{frame}{Outline}
+    \tableofcontents[currentsection, currentsubsection]  
+\end{frame}
+%
+
+% %===============================================================================
+% 		 SLIDE 1
+\begin{frame}{Motivation: Digital Twin (DT)}
+
+\begin{itemize}
+  \item \textbf{Diabetes and prediabetes are extremely common}\\
+        In the United States, about 38--38.4 million people
+        (\(\approx 1\) in 10) are living with diabetes, and nearly
+        100 million adults (\(\approx 1\) in 3) have prediabetes
+        (blood sugar higher than normal but not yet diabetes). lifelong insulin dependence for (\(\approx 1\) 1.6M) patients in U.S.
+\\
+\vspace{15pt}
+  \item \textbf{Motivation for Digital Twin (DT)}
+        \begin{columns}[T,totalwidth=\textwidth]
+          \begin{column}{0.40\textwidth}
+            To use artificial pancreas systems safely in everyday life, we need
+            uncertainty-aware digital twins that can:
+            \begin{itemize}
+                \item[(i)] Recognize when sensor data are noisy or unreliable,
+                \item[(ii)] Account for patient-to-patient variability, and
+                \item[(iii)] Support risk-averse, personalized insulin dosing.
+            \end{itemize}
+          \end{column}
+          \begin{column}{0.68\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{Figures/architecture/dt.png}
+
+            {Illustration of a closed-loop artificial pancreas system.}
+          \end{column}
+        \end{columns}
+
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Motivation: Enabling Artificial Pancreas}
+
+\begin{itemize}
+\begin{figure}
+            \centering
+            \includegraphics[width=0.9\linewidth]{Figures/results/B/tcn_opal.png}
+
+            {Illustration of a closed-loop artificial pancreas system.}
+\end{figure}
+\\
+        \begin{columns}[T,totalwidth=\textwidth]
+          \begin{column}{0.50\textwidth}
+          \textbf{Emphasis:}\\
+
+            \begin{itemize}
+                \item[(i)] Validation and Uncertainty quantification in deep learning for time series.
+
+                \item[(ii)] Patient-specific data accumulated noise from sensors and data.
+
+                \item[(iii)] Risk-averse control: optimize insulin delivery while mitigating uncertainty.
+
+            \end{itemize}
+          \end{column}
+          \begin{column}{0.58\textwidth}
+          \textbf{Data source:}\\
+            \begin{itemize}
+                \item[(i)] ODE-based blood glucose model.
+
+                \item[(ii)] FDA-approved in silico patients: variable meal sizes, insulin dosing, age groups, and simulated glucose readings over two years.
+                \item[(iii)] Clinical datasets: 300 T1D patients collected\\ through the Tidepool Big Data Donation Project .
+            \end{itemize}
+          \end{column}
+        \end{columns}
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Bayesian Temporal Convolutional Network (B-TCN)}
+
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Deep Learning for Time Series}
+
+\small
+\begin{columns}[T,totalwidth=\textwidth]
+  %------------------ RNN ------------------
+  \column{0.48\textwidth}
+  \centering
+  \includegraphics[width=0.8\linewidth]{Figures/architecture/rnn.png}
+  \vspace{2pt}
+
+  {
+  \textbf{(a)RNN}\\
+  \begin{itemize}
+    \item Suffers from vanishing / exploding gradients.
+    \item Hard to learn long-range dependencies.
+    \item Lower accuracy than TCN and LSTM. 
+  \end{itemize}
+  }
+
+
+  \column{0.48\textwidth}
+  \centering
+
+  \includegraphics[width=0.8\linewidth]{Figures/architecture/lstm.png}
+  \vspace{2pt}
+
+  {
+  \textbf{(b) LSTM}\\
+  \begin{itemize}
+    \item Gating but adds many parameters and states.
+    \item Still sequential in time: slow for long sequences.
+    \item Can still forget very long-term context and uses large memory.
+  \end{itemize}
+  }
+\end{columns}
+
+\vspace{-0.1cm}
+\textbf{Solution: Temporal Convolutional Networks (TCN)}
+\footnote{Bai, Shaojie. "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling." arXi}
+\begin{itemize}
+  \item  1D convolutions process all time
+        steps in parallel, removing the sequential bottleneck of RNN/LSTM.
+  \item The convolutions in the architecture are causal, meaning that there is         no information leakage from future to past
+  \item Greatly reducing vanishing/exploding gradient issues with dilation,            capturing long-range dependencies more reliably 
+  \item No recurrent gates; fewer parameters to store during training and simpler architecture to tune.
+\end{itemize}
+
+\end{frame}
+
+
+%---------------------------------------------------------------------------------------------------------------%
+%--------------------------------------Design under uncertainty-------------------------------------------------%
+%---------------------------------------------------------------------------------------------------------------%
+% %===============================================================================
+% 		 SLIDE 3
+% %===============================================================================
+%%%
+\begin{frame}{TCN Basic Concepts}
+%\footnotesize
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.53\textwidth}
+    \raggedright
+    \begin{itemize}
+        \item \textbf{Temporal Convolutional Networks (TCN)} are a deep learning architecture for processing sequential 1D data by using causal, dilated 1D convolutional layers % to capture patterns across time.
+
+        \item \textbf{Causal convolution:} every timestep in the output can get information from the current/past timesteps% — it can't get information from future timesteps.
+
+        \item \textbf{Receptive field} $RF$: set of entries of the input that affect a specific entry of the output.
+        \[
+            RF = 1 + l \cdot (k - 1)
+        \]
+    \end{itemize}
+  \end{column}
+
+  \begin{column}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{Figures/architecture/recep2.png}
+    
+    \emph{}
+  \end{column}
+\end{columns}
+
+\vspace{8pt}
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[trim=0mm 0mm 0mm 0mm, clip, width=\linewidth]{Figures/architecture/dilation.png}
+  \par\justifying\centering
+  \emph{\textbf{Dilation:} distance between the elements of the input sequence used to compute one entry of the output sequence.}
+\end{minipage}
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[trim=0mm 0mm 0mm 0mm, clip, width=\linewidth]{Figures/architecture/holes.png}
+  \par\justifying\centering
+  \emph{\textbf{Hole} formulate when the dilation base $b$ is larger than the kernel size $k$. }
+  $k \le b$
+  % \begin{equation}
+  % k \le b
+  % \end{equation}
+\end{minipage}\hfill
+
+\end{frame}
+
+
+
+% %===============================================================================
+% 		 SLIDE 6
+% %===============================================================================
+\begin{frame}{TCN for Blood Glucose Prediction}
+%\footnotesize
+\begin{figure}
+        \includegraphics[width=1\textwidth]{Figures/architecture/full_arch2.png}
+        \caption*{Full architecture of the proposed TCN model with temporal blocks and Convolutional layers}
+        \label{fig:image1}
+\end{figure}
+\vspace{-4pt}
+The \textbf{receptive field} of the TCN is given by,
+\begin{equation}
+RF = 1 + 2 \cdot \sum_{i=0}^{n-1} (k - 1) \cdot b^i = 1 + 2 \cdot (k - 1) \cdot \frac{b^n - 1}{b - 1}
+\end{equation}
+\end{frame}
+%
+% %===============================================================================
+% 		 SLIDE 10
+% %===============================================================================
+\begin{frame}{Bayesian TCN}
+Let $\bs D$ be the training data,
+\[
+\bs D = \left\{ (G^{(k-l:k)},\, M^{(k-l:k)},\, I^{(k-l:k)},\, G^{(k+1:k+K_f)}) \right\}_{k=1}^{N}.
+\]
+Bayes' rule for the posterior:
+\[
+\pi_{\rm post}(\bs w \mid \bs D)
+= \frac{\pi_{\rm like}(\bs D \mid \bs w)\,\pi_{\rm pr}(\bs w)}
+       {\pi_{\rm evid}(\bs D)} .
+\]
+\begin{itemize}
+    \item  Prior with  $\sigma_{\rm pr}^2$ variance,\\
+\[
+ \pi_{\rm pr}(\bs w) = \mathcal{N}\!\left(0,\, \sigma_{\rm pr}^2\right)
+\]
+    \item Likelihood under Gaussian output noise:
+\[
+\log \pi_{\rm like}(\bs D \mid \bs w)
+=
+-\frac{1}{2\sigma_{\rm noise}^{2}}
+\sum_{t=1}^{N} 
+\big\| G^{(k+1:k+K_f)} 
+      - G_{\rm TCN}^{(k+1:k+K_f)}(\bs w)
+\big\|_2^2
+-\frac{N K_f}{2}\log(2\pi\sigma_{\rm noise}^{2})
+\]
+
+   \item The predictive distribution of the future blood glucose trajectory
+$G^{\star (k+1:k+K_f)}$ is:
+\begin{equation}
+\pi\!\left(G^{\star (k+1:k+K_f)} \mid 
+         G^{\star(k-l:k)}, M^{\star(k-l:k)}, I^{\star(k-l:k)},\, \bs D\right)\\
+=
+\int \pi\!\left(G^{\star (k+1:k+K_f)} 
+           \mid G^{\star(k-l:k)}, M^{\star(k-l:k)}, I^{\star(k-l:k)},\, \bs w\right)
+           \pi_{\text{post}}(\bs w \mid \bs D)\, d\bs w
+\end{equation}
+
+\end{itemize}
+\end{frame}
+% %===============================================================================
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Hierarchical Bayesian Inference}
+\textbf{Bayesian TCN Model:}
+\begin{itemize}
+    \item Convolutional weight parameters: $\boldsymbol w $
+    \item Inference hyperparameters \hspace{0.17 in}: $\boldsymbol \sigma = [\boldsymbol \sigma^{\text{pr}}, \boldsymbol \sigma^{\text{noise}}]$
+    \item Architecture hyperparameters \hspace{0.02 in}: $\boldsymbol \xi \hspace{0.07 in} (\text{e.g. number of temporal blocks, dilation base, stride)} $
+\end{itemize}
+    \textbf{{Hierarchical Bayesian Inference:\footnotemark}}
+\begin{itemize}
+    \item \textit{Level 1.} Infer the network parameters $\boldsymbol w$,
+    %
+    \begin{equation*}\label{eq:lev1}
+    \pi_{post} (\boldsymbol w | \boldsymbol D, \boldsymbol \sigma, \boldsymbol \xi) = 
+    \frac{\pi_{like} (\boldsymbol D| \boldsymbol w, \boldsymbol \sigma, \boldsymbol \xi) \,
+    \pi_{pr} (\boldsymbol w| \boldsymbol \sigma, \boldsymbol \xi)}
+    {\pi_{evid} (\boldsymbol D| \boldsymbol \sigma, \boldsymbol \xi)}.
+    \end{equation*}
+
+
+    \item \textit{Level 2.} Infer the inference hyper-parameters $\boldsymbol \sigma$,
+    %
+    \begin{equation*}\label{eq:lev2}
+    \pi_{post} (\boldsymbol \sigma | \boldsymbol D,  \boldsymbol \xi) = 
+    \frac{\pi_{evid} (\boldsymbol D| \boldsymbol \sigma,  \boldsymbol \xi) \,
+    \pi_{pr} (\boldsymbol \sigma |  \boldsymbol \xi)}
+    {\pi_{evid} (\boldsymbol D|  \boldsymbol \xi)}.
+    \end{equation*}
+
+
+    \item \textit{Level 3.} Infer the archtecture hyper-parameters $\boldsymbol \xi$,
+    %
+    \begin{equation*}\label{eq:lev3}
+    \pi_{post} (\boldsymbol \xi | \boldsymbol D) =
+    \frac{\pi_{evid} (\boldsymbol D| \boldsymbol \xi) \,
+    \pi_{pr} (\boldsymbol \xi)}{\pi_{evid} (\boldsymbol D)}.
+    \end{equation*}
+
+\end{itemize}
+\footnotetext[7]{
+Singh, Pratyush Kumar, Kathryn A. Farrell-Maupin, and Danial Faghihi. "A framework for strategic discovery of credible neural network surrogate models under uncertainty." Computer Methods in Applied Mechanics and Engineering 427 (2024): 117061.}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{The Evidence Framework}
+\begin{itemize}
+\small
+\item Variational Inference:
+We approximate the posterior with a Gaussian Distribution
+$q_{\bs\eta}(\bs w)$, where  $\bs\eta=(\mu_\theta,\sigma_\theta)$.
+\[
+\bs\eta^{\rm opt}
+= \underset{\bs\eta}{\arg\min}\;
+\mathcal{L}_{\rm VI}(\bs\eta)
+\]
+ Where, (for Gaussian-distributed total error)
+    \begin{eqnarray}\label{eq:vi}
+        \mathcal{L}_{\rm VI}(\bs \eta)
+        & = & \mathrm{KL}\!\big[q_{\bs \eta}(\bs w) \,\|\, \pi_{\rm pr}(\bs w)\big]
+        + \frac{Nf}{2} \log(2 \pi \sigma_{\rm noise}^2) \nonumber\\
+        & + & \frac{1}{M_{MC}} \sum_{j=1}^{M_{MC}}
+          \frac{1}{2\sigma_{\rm noise}^2}
+          \big\| G^{(k+1:k+K_f)} - G^{(k+1:k+K_f)}_{\text{TCN}}(\hat{\bs w}^{(j)}) \big\|_2^2 
+    \end{eqnarray}
+\item The optimal values $\bs \sigma^{\rm opt}$ correspond to the Maximum A Posteriori (MAP) estimate:
+\begin{equation}\label{eq:la_l2}
+    \bs \sigma^{\rm opt} = \underset{\bs \sigma}{\rm argmax} \; 
+    \mathcal{L}_{\rm Evid2}(\bs \sigma)
+\end{equation}
+
+The log-evidence for fixed $\bs \xi$ can be analytically evaluated as
+\begin{equation}\label{eq:evid_l2}
+\begin{aligned}
+    \mathcal{L}_{\rm Evid2}(\bs \sigma) = \log \pi_{\rm evid}(\bs D \mid \bs \sigma, \bs \xi) 
+    \;\approx\; 
+    & -\frac{1}{2\sigma_{\rm noise}^2} 
+      \sum_{t=1}^{N} 
+      \big\| G^{(k+1:k+K_f)} - G^{(k+1:k+K_f)}_{\text{TCN}}(\bs \mu_{\rm post}) \big\|_2^2 \\
+    & - \frac{Nf}{2}\log(2\pi \sigma_{\rm noise}^2) 
+     - \frac{1}{2\sigma_{\rm pr}^2}\|\bs \mu_{\rm post}\|_2^2 \\
+    & - \frac{p}{2} \log(2\pi \sigma_{\rm pr}^2) 
+      - \frac{1}{2} \log \det (\bs H)
+\end{aligned}
+\end{equation}
+
+\item The hyperparameters $\bs \sigma$ around their MAP values $\bs \sigma^{\rm opt}$,
+    %
+    \begin{equation}\label{eq:evid_l3}
+	\rm{Evid_3} =  \pi_{\rm evid} (\bs D| \bs \xi) = 
+    \pi_{\rm evid} (\bs D| \bs \sigma^{\rm opt},  \bs \xi) \,
+    \pi_{\rm pr} (\bs \sigma^{\rm opt} | \bs \xi)
+    \left[ 
+    2\pi \, \sqrt{Var(\sigma_{\rm pr}^2) Var(\sigma_{\rm noise}^2)}
+    \right]
+    \end{equation}
+    %
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{TCN Training}
+
+\noindent \textbf{Training Setup:}
+\begin{itemize}
+\item Induced Uncertainty in meal time about $\pm 60 \text{ minitues} $ and in meal size $\pm 60\% $. 
+\item 5 days training data and 2 days of testing/validation data.
+\item Input length 1 day and output length is 12 hours. 
+\item Data was generated with a stride of 3.
+\end{itemize}
+
+\begin{figure}
+        \includegraphics[width=1\textwidth]{Figures/data/traintestfinal.png}
+        \caption*{}
+        \label{fig:image1}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Synthetic Training Data}
+
+\textbf{Bergman Minimal Model}\footnote{Nandi, Souransu, and Tarunraj Singh. "Differential flatness based run-to-run control of blood glucose for people with type 1 diabetes."}
+\[
+\dot{G}(t) = -(X(t) + p_1) G(t) + p_1 G_b + \frac{\textcolor{blue}{R_{ag}}(t)}{V_g}
+\]
+\[
+\dot{X}(t) = -p_2 X(t) + p_3 (I(t) - I_b)
+\]
+\[
+\dot{I}(t) =
+\begin{cases}
+ -p_4 I(t) + \gamma (G(t)-h)(t-t_m), & G(t)\!\ge h,\; t\!\ge t_m\\[4pt]
+ -p_4 I(t), & \text{otherwise}
+\end{cases}
+\]
+
+\textbf{Gut Absorption Model (Dalla Man)}
+\[
+\textcolor{blue}{R_{ag}}(t) = f\, k_{\text{abs}}\, q_{\text{gut}}(t)
+\]
+\[
+\dot{q}_{\text{gut}} = -k_{\text{abs}} q_{\text{gut}} + k_{\text{empt}} q_{\text{sto2}}
+\]
+\[
+\dot{q}_{\text{sto1}} = -k_{21} q_{\text{sto1}} + \textcolor{red}{M} \delta(t-t_m),
+\qquad
+\dot{q}_{\text{sto2}} = -k_{\text{empt}} q_{\text{sto2}} + k_{21} q_{\text{sto1}}
+\]
+
+
+\textbf{Key states and parameters:}
+\begin{itemize}
+\item \(G(t)\): plasma glucose,\quad \(X(t)\): insulin action,\quad \(I(t)\): plasma insulin
+\item \(p_1\): glucose effectiveness,\; \(p_2,p_3\): insulin action dynamics,\; \(p_4\): insulin decay
+\item \(G_b,I_b\): basal glucose/insulin,\; \(h\): secretion threshold,\; \(\gamma\): secretion gain
+\item \(R_{ag}(t)\): gut-driven glucose appearance,\; \(V_g\): glucose distribution volume
+\end{itemize}
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%===============================================================================
+% 		 SLIDE 7
+\begin{frame}{Numerical Results I}
+\begin{figure}[t]
+  \centering
+
+  \begin{minipage}{0.4\textwidth}
+    \centering
+    \includegraphics[width=\linewidth, keepaspectratio]{Figures/results/A/lyr_dil_param.png}
+    \caption*{Number of parameters
+    }
+  \end{minipage}\hfill
+  \begin{minipage}{0.4\textwidth}
+    \centering
+    \includegraphics[width=\linewidth, keepaspectratio]{Figures/results/A/dil_lyr_rf.png} 
+
+    \caption*{Receptive field
+    }
+  \end{minipage}
+
+  \begin{minipage}{0.55\textwidth}
+    \centering
+    \vspace{-0.5pt}
+    \includegraphics[width=\linewidth, keepaspectratio]{Figures/results/A/lyer_dil_evide.png}
+    \caption*{Model evidence (posterior model plausibility)
+    %for different dilation base and temporal blocks
+    }
+  \end{minipage}\hfill
+
+\end{figure}
+\end{frame}
+% %===============================================================================
+%
+\begin{frame}{Numerical Results II}
+\centering
+\begin{figure}
+\centering
+
+\begin{minipage}[t]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/results/A/train_good.png}
+  \caption*{Training data fit for A}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/results/A/train_med.png}
+  \caption*{Training data fit for B}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/results/A/train_bad.png}
+  \caption*{Training data fit for C}
+\end{minipage}
+
+\begin{minipage}[t]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/results/A/pred_goof.png} % pred_good.png ?
+  \caption*{Prediction for A}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/results/A/pred_med.png}
+  \caption*{Prediction for B}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/results/A/pred_bad.png}
+  \caption*{Prediction for C}
+\end{minipage}
+
+\end{figure}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Numerical Results III}
+\begin{figure}
+  \begin{minipage}{0.35\textwidth}
+    \centering
+    \includegraphics[width=1.1\linewidth, keepaspectratio]{Figures/results/A/in_out_evid.png}
+    \caption*{Resolution 1400$\times$1400}
+  \end{minipage}\hfill
+  \begin{minipage}{0.35\textwidth}
+    \centering
+    \includegraphics[width=1.05\linewidth, keepaspectratio]{Figures/results/A/in_out_smlfig.png} 
+    \caption*{Resolution 300$\times$300}
+  \end{minipage}
+
+  \begin{minipage}{0.3\textwidth}
+    \centering
+      \vspace{-15pt}
+    \includegraphics[width=\linewidth, keepaspectratio]{Figures/results/A/stride_evid.png} 
+    \caption*{Stride}
+    
+  \end{minipage}
+\end{figure}
+
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 33
+%
+%===============================================================================
+\section{B-TCN Model Discovery Using Population Based Data}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+
+
+% 		 SLIDE 8
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE 9
+% %===============================================================================
+\begin{frame}{Population Based Patient Data}
+
+\begin{columns}[T,totalwidth=\textwidth]
+
+    % ------------------- Training Setup -------------------
+    \column{0.48\textwidth}
+    \textbf{Training Setup:}
+    \begin{itemize}
+        \item Input length: 1 day, Output length: 285 minutes (minimum inter-meal gap).  
+    \end{itemize}
+
+    \column{0.48\textwidth}
+    \textbf{Validation Setup:}
+    \begin{itemize}
+        \item 3 days for training and 1 day for validation.
+        \item Input length: 1 day and output length: 60 minutes.
+    \end{itemize}
+\end{columns}
+\vspace{5pt}
+
+\begin{columns}[c]
+
+  \begin{column}{0.6\textwidth}
+    \centering
+    \begin{figure}
+        \centering
+        \includegraphics[width=1.1\linewidth]{Figures/data/population.png}
+        \caption*{Population based patient data from UVa/Padova T1D simulator}
+        \label{fig:placeholder}
+    \end{figure}
+  \end{column}
+
+  \begin{column}{0.4\textwidth}
+    \small
+    \textbf{5-fold cross-validation:}
+    \begin{itemize}
+      \item Fold-1: Training patinets: Adults [1-8], validation patients: Adults [9,10].
+      \item Fold-2: Training patinets: Adults [1-5,8,9,10], validation patients: Adults [6,7].
+      \item Fold-3: Training patinets: Adults [3-10], validation patients: Adults [1,2].
+      \item Fold-4: Training patinets: Adults [1,2,3-10], validation patients: Adults [3,4]. 
+      \item Fold-5: Training patinets: Adults [1-4,6,7,9,10], validation patients: Adults [5,8].
+    \end{itemize}
+  \end{column}
+
+\end{columns}
+\end{frame}
+
+% 
+
+%===============================================================================
+% 		 SLIDE  11
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE  12
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE  13
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE  14
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE  15
+% %===============================================================================
+
+
+
+% %===============================================================================
+% 		 SLIDE  14
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE  15
+% %===============================================================================
+
+
+% %===============================================================================
+% 		 SLIDE 16
+% %==============================================================================
+
+
+% %===============================================================================
+% 		 SLIDE 17
+% 
+%===============================================================================
+% 		 SLIDE 18
+% %===============================================================================
+\begin{frame}{Bayesian Model Selection Algorithm (BMSA)}
+Discovering B-TCN architecture using population-based data of multiple patients
+\centering
+    \begin{figure}
+        \centering
+        \includegraphics[width=1\linewidth]{Figures/architecture/OPAL_CN.png}
+        \caption*{}
+        \label{fig:placeholder}
+    \end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %===============================================================================
+% 		 SLIDE 20
+
+% %===============================================================================
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Identifying Initial Pool of TCN Architectures}
+\begin{enumerate}
+    \item The receptive field has to be greater than or equal to one day,
+
+    \begin{equation}
+    1440 \le RF_n \le 2000
+    \end{equation}
+
+\item Condition for no holes: $k \ge b$.
+\end{enumerate}
+\textbf{Additional assumptions:}
+\begin{itemize}
+\item Number of filters in each block starts from 2 and can go up as much as 512.\\
+\item Upper bound on kernel size 15. \\
+\item We double the number of filters in each temporal block\footnote{Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional networks for biomedical image segmentation." International Conference on Medical image computing and computer-assisted intervention. Cham: Springer international publishing, 2015.} \footnote{Badrinarayanan, Vijay, Alex Kendall, and Roberto Cipolla. "Segnet: A deep convolutional encoder-decoder architecture for image segmentation." IEEE transactions on pattern analysis and machine intelligence 39.12 (2017): 2481-2495.}. 
+\end{itemize}
+
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|cccccc|}
+\toprule
+\hline
+\textbf{Category} & \textbf{Params}& \textbf{ArchCount} & \textbf{\# blocks $n$} & \textbf{\# filters $f$} & \textbf{\# $(k, b)$} \\
+\midrule
+\hline
+1 & $\le$30k & 10 & [3, 4] & [2, 4] & 6 \\
+2 & 30k-100k & 9 & [3, 4, 5, 6] & [2, 4, 8] & 9 \\
+3 & 100k-400k & 10 & [3, 4, 5, 6] & [2, 4, 8, 16] & 10 \\
+4 & 400k-1M & 11 & [3, 4, 5, 6, 7] & [2, 4, 8, 16, 32] & 11 \\
+5 & 1M-5M & 11 & [3, 4, 5, 6, 7] & [4, 8, 16, 32, 64] & 11  \\
+6 & $\ge$5M & 10 & [3, 4, 5, 6, 7] & [8, 16, 32, 64, 128] & 10 \\
+\bottomrule
+\hline
+\end{tabular}
+\label{tab:tcn_param_bins_full}
+\end{table}
+\end{frame}
+
+%===============================================================================
+% 		 SLIDE 21
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE 22
+\begin{frame}{Bayesian TCN Validation Metrics}
+\textbf{B-TCN:} 1 hour prediction of blood glucose  
+\begin{itemize}
+    \item B-TCN mean prediction $\hat{G}^{\text{TCN}}$ and prediction uncertainty (variance): $\sigma^{\text{TCN}}$
+    \item Blood glucose measurements: $G^{\text{data}}$
+    \item Sensor noise $\sigma^{\text{data}}$: manufacturing-specific of CGM (e.g., Dexcom), FDA-approved code provides true vs measured blood glucose
+\end{itemize}
+\textbf{ Negative log-prediction density }
+\[
+\sigma^2 = (\sigma^{\text{TCN}})^2 + (\sigma^{\text{data}})^2
+\]
+\[
+NLPD = 
+\frac{1}{N}\sum_{i=1}^N 
+\left[
+\frac{\left(\hat{G}^{\text{TCN}}_i - \hat{G}^{\text{data}}_i\right)^2}{\sigma_i^2}
++ \ln(\sigma_i^2)
+\right]
+\leq Tol
+\]
+$\hat{G}^{\text{TCN}}_i$ represents the Bayesian TCN mean prediction of blood glucose at time $i$, while $\hat{G}^{\text{data}}_i$ denotes the corresponding CGM-measured glucose value. The predictive uncertainty consists of the model-derived standard deviation $\sigma^{\text{TCN}}_i$ and the CGM sensor noise $\sigma^{\text{data}}$. 
+
+\end{frame}
+
+% %===============================================================================
+
+
+% %===============================================================================
+% 		 SLIDE 32
+% %===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 1: Most Plausible Models}
+ \vspace{-5pt}
+\begin{figure}[t]
+  \centering
+    \includegraphics[width=0.75\linewidth, keepaspectratio]{Figures/results/B/category1_evidence.png}
+    \vspace{-5pt}
+    \caption*{Model plausibility of architectures in Category 1 for 3 different cross-validation folds}
+\end{figure}
+
+\textbf{Most plausible architectures (Category 1):}
+
+\begin{itemize}
+    \item \textbf{Fold 1:}
+    Dilation Base = 9,  Encoder = [2,4,8], Decoder = [8,4,2], kernel size: 9
+    
+    \item \textbf{Fold 2:}
+    Dilation Base = 9,  Encoder = [2,4,8], Decoder = [8,4,2], kernel size: 9
+    
+    \item \textbf{Fold 3:}
+    Dilation Base = 8,  Encoder = [2,4,8], Decoder = [8,4,2], kernel size: 13
+    \item \textbf{Fold 4:}
+    Dilation Base = 9,  Encoder = [4,8,16], Decoder = [16,8,4], kernel size: 9
+    \item \textbf{Fold 5:}
+    Dilation Base = 9,  Encoder = [2,4,8], Decoder = [8,4,2], kernel size: 11
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 1: Validation Test}
+\small 
+\centering
+
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 1 Adult 9}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/pred_c1_p9.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.3\textheight]{Figures/results/B/error_c1_p9.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\vspace{-15pt} 
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 2 Adult 6}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/pred_p6_c1.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.3\textheight]{Figures/results/B/eror_p6_c1.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\vspace{-15pt} 
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 3 Adult 1}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/pred_p1_c1.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.3\textheight]{Figures/results/B/error_p1_c1.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 34
+\begin{frame}{Category 2: Most Plausible Models}
+ \vspace{-5pt}
+\begin{figure}[t]
+  \centering
+    \includegraphics[width=0.75\linewidth, keepaspectratio]{Figures/results/B/category2_eidence.png}
+    \vspace{-5pt}
+    \caption*{Model plausibility calculated against number of parameters for 3 different validation sets for Category 2}
+\end{figure}
+\textbf{Most plausible architectures (Category 2):}
+
+\begin{itemize}
+     \item \textbf{Fold 1:}Dilation Base = 3  Encoder = [2,4,8,16,32] Decoder = [32,16,8,4,2] kernel size: 7\\
+     \item \textbf{Fold 2:}Dilation Base = 4  Encoder = [4,8,16,32] Decoder = [32,16,8,4] kernel size: 11\\
+     \item \textbf{Fold 3:}Dilation Base = 3  Encoder = [2,4,8,16,32] Decoder = [32,16,8,4,2] kernel size: 9\\
+     \item \textbf{Fold 4:}Dilation Base = 3  Encoder = [2,4,8,16,32] Decoder = [32,16,8,4,2] kernel size: 9\\
+     \item \textbf{Fold 5:}Dilation Base = 3  Encoder = [2,4,8,16,32] Decoder = [32,16,8,4,2] kernel size: 9\\
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 2: Validation Test (Fail)}
+\small 
+\centering
+
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 1 Adult 9}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.35\textheight]{Figures/results/B/pred_c2_p9.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/error_c2_p9.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 2 Adult 6}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.35\textheight]{Figures/results/B/pred_p6_c2.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/eror_p6_c2.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 2: Validation Test (Success)}
+\small 
+\centering
+\begin{figure}
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 3 Adult 1}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.35\textheight]{Figures/results/B/pred_p1_c2.png}
+  \text{}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/error_p1_c2.png}
+  \caption*{}
+\end{minipage}
+\text{\textbf{Valid Architecture:} Dilation Base = 3 \n Encoder = [2,4,8,16,32] Decoder = [32,16,8,4,2] kernel size: 9}
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 3 Adult 2}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.35\textheight]{Figures/results/B/pred_p2_c2.png}
+  \caption*{}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/eror_p2_c2.png}
+  \caption*{}
+\end{minipage}
+\end{figure}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 2: Validation Test (Success)}
+\small 
+\centering
+\begin{figure}
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 4 Adult 3}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.35\textheight]{Figures/results/B/pred_c2_p3.png}
+  \caption*{}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/eror_p3_c2.png}
+  \caption*{}
+\end{minipage}
+\text{\textbf{Valid Architecture:} Dilation Base = 3 \n Encoder = [2,4,8,16,32] Decoder = [32,16,8,4,2] kernel size: 9}
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 4 Adult 4}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.35\textheight]{Figures/results/B/pred_p4_c2.png}
+  \caption*{}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/error_p4_c2.png}
+  \caption*{}
+\end{minipage}
+
+\end{figure}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 3: Most Plausible Models}
+ \vspace{-5pt}
+\begin{figure}[t]
+  \centering
+    \includegraphics[width=0.75\linewidth, keepaspectratio]{Figures/results/B/category3_evidence.png}
+    \vspace{-5pt}
+    \caption*{Model plausibility calculated against number of parameters for 3 different validation sets for Category 3}
+\end{figure}
+
+\textbf{Most plausible architectures (Category 3):}
+\small
+\begin{itemize}
+     \item \textbf{Fold 1:}Dilation Base = 2  Encoder = [2,4,8,16,32,64] Decoder = [64,32,16,8,4,2] kernel size: 13\\
+     \item \textbf{Fold 2:}Dilation Base = 9  Encoder = [16,32,64] Decoder = [64,32,16] kernel size: 9\\
+     \item \textbf{Fold 3:}Dilation Base = 2  Encoder = [2,4,8,16,32,64] Decoder = [64,32,16,8,4,2] kernel size: 13\\
+    \item \textbf{Fold 4:}Dilation Base = 3  Encoder = [4,8,16,32,64] Decoder = [64,32,16,8,4] kernel size: 9\\
+    \item \textbf{Fold 4:}Dilation Base = 3  Encoder = [4,8,16,32,64] Decoder = [64,32,16,8,4] kernel size: 9\\
+\end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Category 3: Validation Test}
+\small 
+\centering
+
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 1 Adult 9}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/pred_c3_p9.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.3\textheight]{Figures/results/B/error_c3_p9.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\vspace{-15pt} 
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 2 Adult 6}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/pred_p6_c3.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.3\textheight]{Figures/results/B/eror_p6_c3.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\vspace{-15pt} 
+\begin{minipage}[c]{0.11\textwidth}
+  \raggedright
+  {\small \textbf{Fold 3 Adult 1}}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.32\textheight]{Figures/results/B/pred_p1_c3.png}
+  \caption*{\tiny Prediction}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.38\textwidth}
+  \centering
+  \includegraphics[height=0.3\textheight]{Figures/results/B/eror_p1_c3.png}
+  \caption*{\tiny Error}
+\end{minipage}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%===============================================================================
+\section{Future Plan with Digital Twin for Diabetes}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 35
+\begin{frame}{Digital Twin (DT)}
+\begin{figure}
+         \includegraphics[height=0.45\textheight]{Figures/architecture/MBL.png}
+  \caption*{}
+\end{figure}
+\vspace{-15pt}
+The DT learns blood-glucose (BG) dynamics from individualized continuous glucose monitoring (CGM) time series data and computes insulin dosing schedules that are optimized under uncertainty. The computational stack comprises below modules:
+\begin{enumerate}
+    \item \textbf{Bayesian Filter:} dynamically update both weights $\bs w$ and inference hyperparameters $\bs \sigma$ as new data arrives sequentially. 
+    
+    \item \textbf{Risk-averse optimal control:} computation of insulin dosing/timing that minimize deviation of the predicted BG trajectory from a reference for type-1 diabetes (T1D), with mean-variance objective function.
+
+\end{enumerate}
+
+\end{frame}
+% %===============================================================================
+\begin{frame}{Bayesian Filter}
+In a patient-specific digital twin, sequential data $\bs D^{(1)}, \bs D^{(2)}, \ldots$ arrive at times $t^{(1)}, t^{(2)}, \ldots$, with insulin input $I^{(k)}$ influencing blood glucose (BG) evolution.
+
+A latent state can be defined,
+\[
+\bs v = [\bs w, \bs \sigma]
+\]
+$\bs v$ latent state, including TCN weights $\bs w$ and inference hyperparameters $\bs \sigma$.
+
+\vspace{6pt}
+\textbf{Bayesian filter:} At step $k+1$, the posterior is:
+\[
+\pi_{\rm post}(\bs v^{(k+1)} \mid \bs D^{(1:k+1)}) = \frac{
+\pi_{\rm like}(\bs D^{(k+1)} \mid \bs v^{(k+1)}) \cdot
+\pi_{\rm prior}(\bs v^{(k+1)} \mid \bs D^{(1:k)})
+}{
+\pi_{\text{evid}}(\bs D^{(k+1)}|\bs D^{(1:k)})
+}
+\]
+
+\vspace{4pt}
+\textbf{Recursive update:}
+\[
+\pi_{\rm post}(\bs v^{(k)} \mid \bs D^{(1:k)}) \longrightarrow
+\pi_{\rm post}(\bs v^{(k+1)} \mid \bs D^{(1:k+1)})
+\]
+\textbf{Assumptions:}
+\item The latent state follows a first-order Markov process,
+\[
+\pi(\bs v^{(k+1)} \mid \bs v^{(1:k)}) 
+  = \pi(\bs v^{(k+1)} \mid \bs v^{(k)}, I^{(k)}),
+\]
+\item Current measurements are conditionally independent of past measurements given the current state,
+\[
+\pi_{\rm like}(\bs D^{(k+1)} \mid \bs D^{(1:k)}, \bs v^{(k+1)})
+  = \pi_{\rm like}(\bs D^{(k+1)} \mid \bs v^{(k+1)}),
+\]
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 36
+\begin{frame}{Deterministic Model Predictive Control (MPC)}
+\centering
+\begin{figure}
+  \centering
+
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{Figures/control/glucose.png}
+    \caption*{MPC controlled glucose trajectory vs reference trajectory vs open loop trajectory}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{Figures/control/insu_input.png}
+    \caption*{MPC controlled insulin input vs original insulin input}
+  \end{minipage}
+
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \vspace{-4pt}
+    \includegraphics[width=\linewidth]{Figures/control/MPC_insulin.png}
+    \caption*{Insulin level over time for MPC controlled and original}
+  \end{minipage}
+
+\end{figure}
+\end{frame}
+
+
+% %===============================================================================
+
+\begin{frame}{Optimal Control Under Uncertainty}
+\small
+
+The Bayesian TCN induces a predictive distribution of future glucose
+\[
+  \bs G^{(k+1:k+K_f)} 
+  \sim p\!\left(\bs G^{(k+1:k+K_f)} 
+        \mid \bs D^{(1:k)}, \bs I^{(k)}, \bs v^{(k)} \right),
+\]
+from which we compute (e.g.\ by Monte Carlo over $\bs v$) for each step $j=1,\dots,K_f$
+\[
+  \mu_{G,k+j}(\bs I^{(k)}) = \mathbb{E}\!\left[G^{(k+j)}\right],
+  \qquad
+  \sigma_{G,k+j}^2(\bs I^{(k)}) = \mathrm{Var}\!\left[G^{(k+j)}\right].
+\]
+
+\medskip
+\textbf{Chance-constrained insulin optimization problem at time $k$.}
+
+Let $G_{\rm lb}$ and $G_{\rm ub}$ be hypo-/hyper-glycemic thresholds, 
+and $G^{\rm targ}_{k+j}$ a target trajectory (e.g.\ euglycemic). 
+We choose $\bs I^{(k)}$ by solving
+%
+\begin{equation}\label{eq:optimal_control}
+    \begin{aligned}
+        & \bs I_{\rm opt}^{(t+1:t+f)} 
+        = \underset{\bs I}{\rm argmin}\;\;
+        && \left\|\, \mathbb{E}\!\left[G^{t+1:t+f} - G_{\rm target}^{t+1:t+f}\right] 
+        + \beta \,\mathbb{V}\!\left[G^{t+1:t+f} - G_{\rm target}^{t+1:t+f}\right] \right\|_2  \\
+        & \text{subject to}
+        && \mathcal{P}\!\left\{\, G^{t+1:t+f} \;\geq\; G_{lb} \,\right\} \;\geq\; 1-\epsilon_1,  \\
+        &&& \mathcal{P}\!\left\{\, G^{t+1:t+f} \;\leq\; G_{ub} \,\right\} \;\geq\; 1-\epsilon_2, 
+        \quad \text{for } (t_M^i + 120 \,\mathrm{min}) \leq t \leq t_M^{i+1}, \\
+        &&& I_{BA}(t) + I_{BO}(t) \;\leq\; I_{\max}.
+    \end{aligned}
+\end{equation}
+Here, $\bs I = [I_{BA}, I_{BO}]$ are the basal and bolus insulin inputs, 
+$G^{t+1:t+f}$ is the predicted BG trajectory over the horizon $f$, 
+and $G_{\rm target}^{t+1:t+f}$ is the nominal BG profile of a healthy individual. The operators $\mathbb{E}[\cdot]$ and $\mathbb{V}[\cdot]$ denote expectation and variance, respectively, with respect to the B-TCN predictive distribution.  
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Publications}
+    
+   {\textbf{List of current publications}}\\
+    \begin{enumerate}
+     \item Islam, M. A., Deighan, D., Bhattacharjee, S., Tantalo, D., Singh, P. K., Salac, D., & Faghihi, D. (2025). Stochastic deep learning surrogate models for uncertainty propagation in microstructure–properties of ceramic aerogels. Computational Materials Science, 258, 114035.
+    \item Islam, Md Azharul, Dwyer Scout Deighan, and Danial Faghihi. "Predicting Microstructure-Property of Silica Aerogel Materials via Bayesian Convolutional Neural Networks Surrogate Model." ASME International Mechanical Engineering Congress and Exposition. Vol. 88681. American Society of Mechanical Engineers, 2024.
+    \end{enumerate}
+
+
+   {\textbf{Plan for future publications}}\\
+    \begin{enumerate}
+     \item Predictive model discovery for Digital Twin using Occum Plausibility Algorithm.
+    \item Digital Twin implementation with dynamic model selection.
+    \item Optimal insulin control for Digital twin under uncertainty.
+    \end{enumerate}
+\end{frame}
+    
+\begin{frame}
+    \begin{center}
+        \Huge{Thank You!}
+    \end{center} \\
+\end{frame}
+
+\end{document}
+

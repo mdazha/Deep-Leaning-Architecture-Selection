@@ -1,0 +1,1307 @@
+\documentclass[8pt,xcolor=dvipsnames,compress]{beamer}
+\usepackage{ragged2e} 
+\usepackage{pcelab_theme}
+\usepackage{pcelab_style}
+\usepackage{multimedia}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{hyperref}
+%\usepackage[algoruled,longend]{algorithm2e}
+\usepackage{array}
+\graphicspath{ {./images/} }
+\usepackage{amsmath}
+\newcolumntype{C}{>{\centering\arraybackslash} m{1000.3in} }
+\newcolumntype{M}{>{\centering\arraybackslash} m{1000.in} }
+\everymath{\displaystyle}
+\long\def\/*#1*/{}
+
+%\beamertemplatenavigationsymbolsempty
+%\usepackage[square,numbers]{natbib}
+\usepackage{tcolorbox}
+\usepackage{rotating}
+\usepackage{booktabs,longtable,array}
+\usepackage{xcolor}
+\usepackage[export]{adjustbox}
+\usepackage{caption}
+\usepackage{subcaption}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\thetab}{\boldsymbol\theta}
+%===============================================================================
+% 					  Presentation Title and Author  
+%===============================================================================
+\title[Proposal Defense]{
+Algorithms for Uncertainty Quantification and Prediction of Blood Glucose Level for Type-1 Diabetes Patient}
+%\subtitle{Ph.D Proposal Defense}
+\author[Md Azharul Islam]{Md Azharul Islam}
+\institute[UB]{Department of Mechanical and Aerospace Engineering\\University at Buffalo\vspace{0.1in}\\Ph.D Research Proposal Presentation
+}
+
+\titlegraphic{\includegraphics[width=4cm]{PCE_logo1.png}}
+\date[]{July 30, 2025}
+%===============================================================================
+%===============================================================================
+
+
+
+\begin{document}
+
+%===============================================================================
+% SLIDE 0
+%===============================================================================
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+% %===============================================================================
+% 		 SLIDE 1
+% %===============================================================================
+\begin{frame}{Table of contents}
+    \tableofcontents
+\end{frame}
+%
+
+% %===============================================================================
+% 		 INTRODUCTION
+% %===============================================================================
+\section{Motivation}
+\subsection{Type 1 Diabetes} 
+\begin{frame}{Outline}
+    \tableofcontents[currentsection, currentsubsection]  
+\end{frame}
+%
+\subsection{Temporal Convolutional Network (TCN)} 
+\begin{frame}{Outline}
+    \tableofcontents[currentsection, currentsubsection]  
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 1
+% %===============================================================================
+\begin{frame}{Motivation: Temporal Convolutional Network (TCN)}
+\footnotesize
+\textbf{Overview:}
+\begin{itemize}
+    \item Up until recently, the topic of sequence modeling in the context of deep learning has been largely associated with recurrent neural network architectures such as LSTM and GRU. Deep learning practitioners commonly regard recurrent architectures as the default starting point for sequence modeling tasks. The sequence modeling chapter in the canonical textbook on deep learning is titled 'Sequence Modeling: Recurrent and Recursive Nets'\footnote{Goodfellow, Ian, Bengio, Yoshua, and Courville, Aaron. Deep Learning. MIT Press, 2016.}, capturing the common association of sequence modeling and recurrent architectures.
+    \item \footnote{An empirical evaluation of generic convolutional and recurrent networks for sequence modeling} Bai et al. were able to show that convolutional networks can achieve better performance than RNNs in many tasks while avoiding common drawbacks of recurrent models, such as the exploding/vanishing gradient problem or lacking memory retention.
+    \item  Using a convolutional network instead of a recurrent one can lead to performance improvements as it allows for parallel computation of outputs. 
+    The distinguishing characteristics of TCNs are: 
+    \begin{itemize}
+    \item[1]  the convolutions in the architecture are causal, meaning that there is no information “leakage” from future to past;
+    \item[2] The architecture can take a sequence of any length and map it to an output sequence of the same length, just as with an RNN.
+    \end{itemize}
+    
+\end{itemize}
+
+\end{frame}
+\begin{frame}{Motivation: Temporal Convolutional Network (TCN)}
+\footnotesize
+\textbf{Sequence Modeling:}
+Suppose that we are given an input sequence $x_0, \ldots, x_T$, and wish to predict some corresponding outputs $y_0, \ldots, y_T$ at each time. The key constraint is that to predict the output $y_t$ for some time $t$. Formally, a sequence modeling network is any function $f : \mathcal{X}^{T+1} \rightarrow \mathcal{Y}^{T+1}$ that produces the mapping
+\begin{equation}
+    \hat{y}_0, \ldots, \hat{y}_T = f(x_0, \ldots, x_T)
+\end{equation}
+If it satisfies the causal constraint that $y_t$ depends only on $x_0, \ldots, x_t$ and not on any 'future' inputs $x_{t+1}, \ldots, x_T$. The goal of learning in the sequence modeling setting is to find a network $f$ that minimizes some expected loss between the actual outputs and the predictions, $L(y_0, \ldots, y_T, f(x_0, \ldots, x_T))$.
+
+
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 2
+% %===============================================================================
+
+
+%---------------------------------------------------------------------------------------------------------------%
+%--------------------------------------Design under uncertainty-------------------------------------------------%
+%---------------------------------------------------------------------------------------------------------------%
+\section{About Temporal Convolutional Network (TCN)}
+\subsection{Basic Architecture}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 3
+% %===============================================================================
+%%%
+\begin{frame}{TCN Basic Concepts}
+%\footnotesize
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.53\textwidth}
+    \raggedright
+    \begin{itemize}
+        \item \textbf{Temporal Convolutional Networks (TCN)} are a deep learning architecture for processing sequential 1D data by using causal, dilated 1D convolutional layers % to capture patterns across time.
+
+        \item \textbf{Causal convolution:} every timestep in the output can get information from the current/past timesteps% — it can't get information from future timesteps.
+
+        \item \textbf{Receptive field} $RF$: set of entries of the input that affect a specific entry of the output.
+        \[
+            RF = 1 + l \cdot (k - 1)
+        \]
+    \end{itemize}
+  \end{column}
+
+  \begin{column}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{Figures/architecture/recep2.png}
+    
+    \emph{}
+  \end{column}
+\end{columns}
+
+\vspace{8pt}
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[trim=0mm 0mm 0mm 0mm, clip, width=\linewidth]{Figures/architecture/dilation.png}
+  \par\justifying\centering
+  \emph{\textbf{Dilation:} distance between the elements of the input sequence used to compute one entry of the output sequence.}
+\end{minipage}
+\begin{minipage}[t]{0.49\textwidth}
+  \centering
+  \includegraphics[trim=0mm 0mm 0mm 0mm, clip, width=\linewidth]{Figures/architecture/holes.png}
+  \par\justifying\centering
+  \emph{\textbf{Hole} formulate when the dilation base $b$ is larger than the kernel size $k$. }
+  $k \le b$
+  % \begin{equation}
+  % k \le b
+  % \end{equation}
+\end{minipage}\hfill
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Causal Convolution} 
+\footnotesize
+\textbf{Causality:}
+For a convolutional layer to be \textit{causal}, for every $i \in \{0, \ldots, \text{input\_length} - 1\}$, the $i$'th element of the output sequence may only depend on the elements of the input sequence with indices $\{0, \ldots, i\}$. In other words, an element in the output sequence can only depend on elements that come before it in the input sequence.
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.45\textwidth]{Figures/explain/causal.png} 
+&
+
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.4\textwidth]{Figures/explain/dil1.png} 
+\\
+$\text{Causality}$
+&
+$\text{Zero padding}$
+\end{tabular}
+
+\textbf{Zero padding:}
+\begin{itemize}
+    \item For a convolutional layer to be causal, an element in the output sequence can only depend on elements that come before it in the input sequence. 
+    \item To ensure an output tensor has the same length as the input tensor, we need to apply zero padding. If we only apply zero-padding on the left side of the input tensor, then causal convolution will be ensured.
+\end{itemize}
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 4
+% %===============================================================================
+\begin{frame}{Receptive Field}
+\scriptsize
+\begin{centering}
+    \includegraphics[width=0.65\textwidth]{Figures/explain/recep2.png}\\
+\hspace{-0.1in}\\
+\end{centering}
+\vspace{-0.1in}
+\textbf{Receptive field:}
+\begin{itemize}
+    \item The receptive field is the set of entries of the original input that affect a specific entry of the output 
+    \item When a specific entry in the output depends on all previous entries in the input, i.e. all entries that have an index smaller or equal to itself. This is achieved when the receptive field has size input length. We also call this ‘full history coverage’.
+    \item More generally, a 1D convolutional network with n layers and a kernel sizek has a receptive field r of size,
+\begin{equation}
+r = 1 + n \ast (k - 1)
+\end{equation}
+
+     \item To know how many layers are needed for full coverage, we can set the receptive field size to input length l and solve for the number of layers n (we need to round up in case of non-integer values):
+
+\begin{equation}
+n = \left\lceil \frac{l - 1}{k - 1} \right\rceil
+\end{equation}
+
+\end{itemize}
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 5
+% %===============================================================================
+\begin{frame}
+\scriptsize
+\frametitle{Dilation} 
+\begin{center}
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.25\textwidth]{Figures/explain/dil3.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.25\textwidth]{Figures/explain/holes.png} 
+\\
+$\text{Dilation with base 2}$
+&
+$\text{Holes}$
+\end{tabular}
+\end{center}
+\vspace{-0.1in}
+\textbf{Dilation}
+\begin{itemize}
+    \item D-dilated layer with a kernel size k has a receptive field spreading across a length of 
+    \[1+d*(k-1)\]This will still require a number linear in the length of the input tensor to achieve full receptive field coverage (we just decreased the constant).
+    \item This problem can be addressed by increasing the value of d exponentially as we move up through the layers. For this, we choose a constant dilation base integer b which will let us compute the dilation d of a specific layer as a function of the number of layers below it
+\begin{equation}
+r = 1 + \sum_{i=0}^{n-1} (k - 1) \cdot b^i = 1 + (k - 1) \cdot \frac{b^n - 1}{b - 1}
+\end{equation}
+
+     \item  \textbf{Holes:} The receptive field might have holes in it; that is there are entries in the input sequence that the output value is not dependent on. Generally speaking, for a receptive field with no holes, the kernel size k has to be at least as big as the dilation base b.
+     \item If we want to cover a input length of l with dilation and no holes, the following inequality must hold true
+     \[
+1 + (k - 1) \cdot \frac{b^n - 1}{b - 1} \geq l
+\]
+
+
+\end{itemize}
+\end{frame}
+%
+\subsection{Proposed Architecture}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 6
+% %===============================================================================
+\begin{frame}{Temporal Block}
+\scriptsize
+Temporal blocks are the building block of TCN. They have two number of convolutional layers, ReLU activation, normalization (if needed) and dropout (for deterministic networks). 
+
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.53\textwidth]{Figures/explain/temp1.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.53\textwidth]{Figures/explain/temp2.png} 
+
+\end{tabular}
+This change affects the calculus for the minimum number of required layers for certain receptive field. 
+\begin{equation}
+r = 1 + \sum_{i=0}^{n-1} (k - 1) \cdot b^i = 1 + 2 \cdot (k - 1) \cdot \frac{b^n - 1}{b - 1}
+\end{equation}
+
+Predictions are made in an non-autoregressive manner (full output sequence is predicted at once). This is due to non-autoregressive TCNs are significantly faster, uses less computational resources and atleast as accurate as their auto-regressive counterparts\footnote{Weber, Daniel, and Clemens Guhmann. "Non-autoregressive vs autoregressive neural networks for system identification." (2021)}. 
+\end{frame}
+% 
+
+\begin{frame}{Full Network Architecture}
+\scriptsize
+Many effective TCN-based forecasting models simply take the TCN’s final hidden layer and project it directly to the forecast via fully connected layers\footnote{A novel PV power prediction method with TCN-Wpsformer model considering data repair and FCM cluster}\footnote{A TCN-Linear Hybrid Model for Chaotic Time Series Forecasting
+}. The output of the two convolutional layers will be added to the input of the residual block to produce the input for the next block.
+
+    \includegraphics[width=1.04\textwidth]{Figures/explain/full.png}\\
+
+\end{frame}
+
+%===============================================================================
+% 		 SLIDE 7
+% %===============================================================================
+\section{Blood Glucose Data}
+\subsection{Ordinary Differential Equations (ODEs)}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+%
+\begin{frame}{Problem Statement: Bergmans Minimal Model}
+\scriptsize
+
+The model used to represent glucose insulin dynamics is chosen to be the Bergman minimal model. It is a set of three differential equations describing the time evolution of glucose and insulin concentrations in blood\footnote{Nandi, Souransu, and Tarunraj Singh. "Differential flatness based run-to-run control of blood glucose for people with type 1 diabetes."} (given below).\\
+
+1. \textbf{Glucose Dynamics:}
+\[
+\dot{G}(t) = -(X(t) + p_1)G(t) + p_1 G_b + \frac{R_{ag}(t)}{V_g}
+\]
+2. \textbf{Insulin Action Dynamics:}
+\[
+\dot{X}(t) = -p_2 X(t) + p_3 (I(t) - I_b)
+\]
+3. \textbf{Insulin Dynamics:}
+\[
+\dot{I}(t) = 
+\begin{cases}
+   -p_4 I(t) + \gamma (G(t) - h)(t - t_m) & \text{for } t \geq t_m \text{ and } G(t) \geq h \\
+   -p_4 I(t) & \text{otherwise}.
+\end{cases}
+\]
+\textbf{Parameter Descriptions}
+\begin{tabular}{ll|ll}
+\hline
+
+\hline
+$G(t)$      & Blood glucose at time $t$             & $p_3$    & Rate constant for insulin sensitivity \\
+$X(t)$      & Insulin action on glucose disposal    & $p_4$    & Rate constant for insulin decay \\
+$I(t)$      & Plasma insulin at time $t$            & $\gamma$ & Rate of insulin secretion in response to glucose \\
+$G_b$       & Basal (steady-state) glucose          & $h$      & Glucose threshold for insulin secretion \\
+$I_b$       & Basal (steady-state) insulin          & $t_m$    & Time delay for insulin secretion after glucose rise \\
+$R_{ag}(t)$ & Glucose appearance rate (from meals)  & $V_g$    & Volume of glucose distribution \\
+$p_1$       & Rate constant for glucose effectiveness & $p_2$    & Rate constant governing insulin action decay \\
+\hline
+\end{tabular}
+\end{frame}
+
+% 
+\begin{frame}{Problem Statement: Gut Dynamics (meal disturbance)}
+\scriptsize
+To introduce dynamics of a meal disturbance, the term $R_{a g}(t)(\mathrm{mg})$ (also referred to as the Rate of appearance of glucose in plasma) is introduced in the model. In this work, $R_{a g}(t)$ is obtained as an output from a gut dynamics model developed by Dalla Man \footnote. It is given by the equations
+\begin{gather*}
+\text{Change of glucose quantity present in solid, } \dot{q}_{s t o 1}(t)=-k_{21} q_{s t o 1}(t)+D \delta\left(t-t_{m}\right)  \tag{4}\\
+\text{Change of glucose quantity present in liquid, } \dot{q}_{s t o 2}(t)=-k_{\text {empt }} q_{s t o 2}(t)+k_{21} q_{s t o 1}(t)  \tag{5}\\
+\text{Change of amount of glucose in the intestines, } \dot{q}_{g u t}(t)=-k_{a b s} q_{g u t}(t)+k_{\text {empt }} q_{s t o 2}(t)  \tag{6}\\
+\text{Rate of appearance of glucose in plasma, } R_{a g}(t)=f k_{a b s} q_{g u t}(t)  \tag{7}\\
+q_{s t o}=q_{s t o 1}+q_{s t o 2}  \tag{8}\\
+\text{Rate of food movement between second stomach compartment & the gut, }
+k_{\text {empt }}\left(q_{s t o}\right)=k_{\text {min }}+\\0.5\left(k_{\max }-k_{\min}\right)\left(\operatorname { t a n h } \left[\alpha \left(q_{s t o}-\right.\right.\right.
+\left.b D)]-\tanh \left[\beta\left(q_{s t o}-c D\right)\right]+2\right)  \tag{9}\\
+\alpha=\frac{5}{2 D(1-b)}  \tag{10}\\
+\beta=\frac{5}{2 D c} . \tag{11}
+\end{gather*}
+\textbf{Parameter Descriptions}
+
+\begin{tabular}{ll|ll}
+\hline
+$G(t)$   & Blood glucose at time $t$             & $p_2$    & Rate constant for insulin action decay \\
+$X(t)$   & Insulin action on glucose disposal    & $p_3$    & Rate constant for insulin sensitivity \\
+$I(t)$   & Plasma insulin at time $t$            & $p_4$    & Rate constant for insulin decay \\
+$G_b$    & Basal glucose concentration           & $\gamma$ & Insulin secretion rate in response to glucose \\
+$I_b$    & Basal insulin concentration           & $h$      & Glucose threshold for insulin secretion \\
+$V_g$    & Volume of glucose distribution        & $t_m$    & Time delay for insulin secretion after glucose rise \\
+$p_1$    & Rate constant for glucose effectiveness &         & \\
+\hline
+\end{tabular}
+
+\end{frame}
+%===============================================================================
+% 		 SLIDE 8
+% %===============================================================================
+\begin{frame}{Problem Statement: Model Predictive control}
+    \vfill
+\footnotesize
+For people suffering from Type-1 diabetes, the natural pancreas term $\left(\gamma(G(t)-h)\left(t-t_{m}\right)\right)$ is removed and is substituted by an artificial insulin input term $U^{\prime}(t)$,
+\begin{equation*}
+\dot{I}(t)=-p_{4} I(t)+U^{\prime}(t)
+\end{equation*}
+\begin{equation*}
+U^{\prime}(t)=U(t)+p_{4} I_{b} \tag{13}
+\end{equation*}
+\begin{gather*}
+\dot{I}(t)=-p_{4}\left(I(t)-I_{b}\right)+U(t) \tag{16}
+\end{gather*}
+The optimal control problem boils down to controlling insulin dosage so that the blood glucose level follows a reference trajectory with t.
+$$
+\begin{array}{cl}
+\underset{U(t)}{\operatorname{minimize}} & J=\int_{0}^{T_{f}}\left(G_{\text {target }}(t)-G(t)\right)^{2} d t \\
+\text { subject to } & \text { System Dynamics } \\
+& G(0)=G\left(T_{f}\right) \\
+& X(0)=X\left(T_{f}\right) \\
+& I(0)=I\left(T_{f}\right) \\
+& G(t) \geq G_{l b} \forall t>0 \\
+& G(t) \leq G_{u b} \text { for }\left(t m_{i}+120\right) \leq t<t m_{i+1} \\
+& U^{\prime}(t) \geq 0 . \tag{30h}
+\end{array}
+$$
+G(t) will come from a surrogate model that predicts the blood glucose at a future time using history data.
+
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 9
+% %===============================================================================
+\subsection{Training Setup}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 10
+% %===============================================================================
+
+\begin{frame}{Data Generation} 
+\scriptsize
+\begin{centering}
+    \includegraphics[width=0.65\textwidth]{Figures/explain/crazy_diabetes_data_all.png}\\
+    \text{Blood glucose generated from Bergman Minimal Model with all 3 inputs (glucose history, meal signal, meal size, meal onset)}
+\hspace{-0.1in}\\
+\end{centering}
+\begin{center}
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.45\textwidth]{Figures/explain/crazy_diabetes_data.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.45\textwidth]{Figures/explain/train_test.png} 
+\\
+$\text{Blood glucose history}$
+&
+$\text{One set of input and output}$
+\end{tabular}
+\end{center}
+
+\end{frame}
+
+% 
+\begin{frame}{Input Parameters}
+Blood glucose depends on various exogenous factors. For accurate prediction these factors are essential, as they effect blood glucose significantly.  In addition to blood glucose history, proposed model also takes two more input parameters. One is the amount of meal intake denoted by D and one is the time of meal intake denoted by t. 
+\scriptsize
+\begin{center}
+\includegraphics[width=1\textwidth]{Figures/explain/input_param.png}\\
+$\text{Three input channels for three input parameters. There is one kernel for each input channel.}$
+    \end{center}
+\end{frame}
+%===============================================================================
+% 		 SLIDE  11
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE  12
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE  13
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE  14
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE  15
+% %===============================================================================
+
+
+
+% %===============================================================================
+% 		 SLIDE  14
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE  15
+% %===============================================================================
+
+
+% %===============================================================================
+% 		 SLIDE 16
+% %==============================================================================
+
+
+% %===============================================================================
+% 		 SLIDE 17
+% %===============================================================================
+% 
+\section{Stochastic Weights Modeling with Uncertainty Estimation}
+\subsection{Variational Inference}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+%===============================================================================
+% 		 SLIDE 18
+% %===============================================================================
+\begin{frame}{Weights as Probaility Distribution}
+\scriptsize
+\begin{center}
+\includegraphics[width=0.6\textwidth]{Figures/explain/probability.png}\\
+    \end{center}
+Probability distribution of weights $\bf w$ in filters of convolutional layers and in fully-connected layers, given data $\mathbf{D} = \{(\mathbf{X}_i, {u}_i)\}_{i=1}^{N_D}$,
+
+\begin{equation}
+\pi_{\text {post }}(\bf w \mid \bf{D}) =
+\frac{\pi_{\text {like }}(\bf{D} \mid \bf w) \pi_{\text {prior }}(\bf w)}{\pi_{\text {evid }}(\bf{D})}
+\end{equation}
+
+-- Avoid overconfidence in parameter estimation
+
+-- Robustness to uncertain data
+
+-- Quantify prediction uncertainty \\
+\vspace{0.07in}
+\textbf{The predictive distribution,}
+\begin{equation}
+\pi\left(u^{\star} \mid \bf X^{\star},\bf {D}\right)=\int \pi\left(u^{\star} \mid \bf X^{\star},\bf w\right) \pi_{\text {post }}(\bf w \mid \bf{D}) d \bf w
+\end{equation}
+
+Computing the posterior $\pi_{\text {post }}(\bf w \mid \bf{D})$ is computationally intractable due to the high-dimensional parameter space inherent in deep networks. So, we resort to approximation methods.
+
+\end{frame}
+
+%
+\begin{frame}{Variational Inference}
+\footnotesize
+
+Approximate the true posterior distribution $\pi_{\text{post}}(\bf{w} \mid \bf{D})$ with a tractable variational distribution $q_{\boldsymbol{\theta}}(\bf{w})$ parameterized by $\boldsymbol{\theta}$.
+\begin{equation}
+q_{\boldsymbol{\theta}}(\mathbf{w}) = \prod_i q_{\theta_i}(w_i),
+\end{equation}
+Where $\boldsymbol{\theta}$ encompasses the means $\mu$ and standard deviations $\sigma$ of each Gaussian component (mean-field approximation).\\
+\vspace{0.07in}
+\textbf{The optimization problem,}
+\begin{equation}\label{eq:f_opt}
+\bs \theta^{\text {opt }}= \underset{\bs \theta}{\arg \min } \; \mathcal{F} (\bs \theta),
+\end{equation}
+\textbf{The evidence lower bound (ELBO) loss function:}
+\begin{equation}\label{eq:elbo}
+\mathcal{F} \approx \beta \; \mathrm{KL}\left( q_{\boldsymbol{\theta}}({\mathbf{w}}) \| \pi_{\text{prior}}({\bf w})\right)-\frac{1}{n} \left[\sum_{i=1}^{n} \ln \pi_{\text{like}}\left(\bf{D} \mid \hat{\bf{w}}^{(i)}\right)\right], \quad 
+\hat{\bf{w}} \sim q_{\boldsymbol{\theta}}(\mathbf{w})
+\end{equation}
+
+$\beta$ is a weighting factor that balances the regularization term against the data misfit.\\
+\vspace{0.07in}
+\textbf{Updating the weights via reparameterization trick,}
+
+\begin{equation}
+{\bf w}^{(t+1)} = \theta^{(t)} + r \Biggl[
+\nabla_{\theta} \sum_{i \in S} \frac{N}{|S|}\, {\bf w} \log \pi(D, {\bf w})\, \nabla_{\theta} {\bf w}
+\;-\;
+\nabla_{\theta}\, \mathrm{KL}\bigl(q_{\theta}({\bf w})\,\|\,\pi({\bf w})\bigr)
+\Biggr].
+\end{equation}
+\end{frame}
+%
+
+\begin{frame}{Variation Inference for Deep Learning}
+\scriptsize
+\begin{center}
+\begin{tabular}{c c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnn_in.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnn2.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnn3.png} 
+\\
+\multicolumn{3}{c}{$\text{In-distribution microstructure to property predictions}$}
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnn_out.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnn4.png} 
+\\
+\multicolumn{2}{c}{$\text{Out-of-distribution microstructure to property predictions}$}
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnn_un.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.2\textwidth]{Figures/explain/cnnub2.png} 
+\\
+$\text{Overall error of the test set}$
+&
+$\text{Overall uncertainty of the test set}$
+\end{tabular}
+\end{center}
+
+\footnote{Islam, Md Azharul, et al. "Stochastic deep learning surrogate models for uncertainty propagation in microstructure–properties of ceramic aerogels." Computational Materials Science 258 (2025): 114035.}
+\end{frame}
+
+
+% 
+\subsection{Model Plausibility Algorithm}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+%===============================================================================
+% 		 SLIDE 18
+% %===============================================================================
+\begin{frame}{The Evidence Framework}
+\scriptsize
+As we will now introduce $\sigma_{noise}$ The ELBO loss function without $\beta$
+\begin{equation}
+\mathcal{L}_{\text{ELBO}} = \frac{N}{2\sigma_{noise}^2} \cdot \text{MSE}(y, \hat{y}) + \frac{N}{2} \log(2\pi \sigma_{noise}^2) + \text{KL}
+\end{equation}
+\textbf{Bayesian Neural Network Model:}
+\begin{itemize}
+    \item Network parameters \hspace{0.47 in}: $\boldsymbol \theta = [\boldsymbol w^{(1)}, \cdots, \boldsymbol w^{(D)}, \boldsymbol b^{(1)}, \cdots, \boldsymbol b^{(D)}]$
+    \item Inference hyperparameters \hspace{0.17 in}: $\boldsymbol \sigma = [\boldsymbol \sigma^{\text{pr}}, \boldsymbol \sigma^{\text{noise}}]$
+    \item Architecture hyperparameters \hspace{0.02 in}: $\boldsymbol \xi = [W^{(1)}, \cdots, W^{(D)}, f^{(1)}, \cdots, f^{(D)}]$
+\end{itemize}
+    \textbf{{Hierarchical Bayesian Inference:\footnotemark}}
+\begin{itemize}
+    \item \textit{Level 1.} Infer the network parameters $\boldsymbol \theta$,
+    %
+    \begin{equation*}\label{eq:lev1}
+    \pi_{post} (\boldsymbol \theta | \boldsymbol D, \boldsymbol \sigma, \boldsymbol \xi) = 
+    \frac{\pi_{like} (\boldsymbol D| \boldsymbol \theta, \boldsymbol \sigma, \boldsymbol \xi) \,
+    \pi_{pr} (\boldsymbol \theta| \boldsymbol \sigma, \boldsymbol \xi)}
+    {\pi_{evid} (\boldsymbol D| \boldsymbol \sigma, \boldsymbol \xi)}.
+    \end{equation*}
+
+
+    \item \textit{Level 2.} Infer the inference hyper-parameters $\boldsymbol \sigma$,
+    %
+    \begin{equation*}\label{eq:lev2}
+    \pi_{post} (\boldsymbol \sigma | \boldsymbol D,  \boldsymbol \xi) = 
+    \frac{\pi_{evid} (\boldsymbol D| \boldsymbol \sigma,  \boldsymbol \xi) \,
+    \pi_{pr} (\boldsymbol \sigma |  \boldsymbol \xi)}
+    {\pi_{evid} (\boldsymbol D|  \boldsymbol \xi)}.
+    \end{equation*}
+
+
+    \item \textit{Level 3.} Infer the archtecture hyper-parameters $\boldsymbol \xi$,
+    %
+    \begin{equation*}\label{eq:lev3}
+    \pi_{post} (\boldsymbol \xi | \boldsymbol D) =
+    \frac{\pi_{evid} (\boldsymbol D| \boldsymbol \xi) \,
+    \pi_{pr} (\boldsymbol \xi)}{\pi_{evid} (\boldsymbol D)}.
+    \end{equation*}
+
+\end{itemize}
+\footnotetext[7]{
+MacKay, D. J., Network: computation in neural systems, 6(3), 1995}
+\end{frame}
+%
+\begin{frame}{Hessian Formulation}
+In variational distribution the parameters are assumed independent, which is known as the mean-field approximation. As a result, the Hessian of the negative log-posterior (or the variational covariance’s inverse) also becomes diagonal,
+\scriptsize
+\begin{columns}
+    \column{0.42\textwidth}
+    \fbox{%
+    \parbox{\linewidth}{%
+    \[
+    \mathbf{\Sigma}_{\text{post}} \approx
+    \begin{bmatrix}
+        \sigma_{\theta,1}^2 &        &        \\
+                   & \ddots &        \\
+                   &        & \sigma_{\theta,P}^2
+    \end{bmatrix}
+    \]
+    \[
+    \mathbf{H}^{-1} \approx \mathbf{\Sigma}_{\text{post}}
+    \]
+    \[
+    \mathbf{H} \approx
+    \begin{bmatrix}
+        1/\sigma_{\theta,1}^2 &             &             \\
+                      & \ddots      &             \\
+                      &            & 1/\sigma_{\theta,P}^2
+    \end{bmatrix}
+    \]
+    }
+    }
+    \column{0.54\textwidth}
+    \fbox{%
+    \parbox{\linewidth}{%
+    
+    \begin{align*}
+    \det(H)
+    &= \prod_{i=1}^{P} \frac{1}{\sigma_{\theta,i}^2} \\
+    \log\det(H)
+    = \sum_{i=1}^{P} \log\!\Bigl(\frac{1}{\sigma_{\theta,i}^2}\Bigr) 
+    &= \sum_{i=1}^{P} \bigl[-2\,\log(\sigma_{\theta,i})\bigr] \\
+    &= -\,2 \sum_{i=1}^{P} \log(\sigma_{\theta,i}) \\
+    -\tfrac12\,\log\det(H)
+    &= -\tfrac12\Bigl[-2 \sum_{i=1}^{P}\log(\sigma_{\theta,i})\Bigr] \\
+    &= \sum_{i=1}^{P}\log(\sigma_{\theta,i})
+    \end{align*}
+    }
+    }
+\end{columns}
+\end{frame}
+%==================================================
+\begin{frame}{Hyperparameter Optimization}
+\footnotesize
+\textbf{The evidence for updating inference hyperparameters}:
+\begin{align}
+\pi_{\text{evid}}(\mathcal{D} \mid \sigma,\xi) =\ 
+& -\frac{1}{2 \ln(\sigma_{\text{noise}}^2)} \sum_{j=1}^{N_D} 
+    \left( u_D^j - u_{\theta_{\text{}}}(x_D^j) \right)^2
+ -\, \frac{N_D}{2} \ln\left( 2\pi \ln(\sigma_{\text{noise}}^2) \right) 
+-\, \frac{1}{2 \ln(\sigma_{\text{pr}}^2)} \| \boldsymbol{\theta}_{\mu} \|^2 \notag\\
+& -\, \frac{P}{2} \ln\left( 2\pi \ln(\sigma_{\text{pr}}^2) \right) 
+ -\, \frac{1}{2} \ln \det\left( \frac{1}{2\pi} \mathbf{H} \right)
+\end{align}
+
+This can be formulated as an optimization problem by minimizing negative of the log evidence\footnote{Singh, Pratyush Kumar, Kathryn A. Farrell-Maupin, and Danial Faghihi. "A framework for strategic discovery of credible neural network surrogate models under uncertainty." }:
+\begin{align}
+\textbf{Negative log evidence} = 
+&\ \frac{1}{2 \ln(\sigma_{\text{noise}}^2)} \sum_{j=1}^{N_D} 
+    \left( u_D^j - u_{\theta_{\mu}}(x_D^j) \right)^2 
+ +\, \frac{N_D}{2} \ln\left( 2\pi \ln(\sigma_{\text{noise}}^2) \right) \notag\\
+ +\, \frac{1}{2 \ln(\sigma_{\text{pr}}^2)} \| \boldsymbol{\theta}_{\mu} \|^2
+&\ +\, \frac{P}{2} \ln\left( 2\pi \ln(\sigma_{\text{pr}}^2) \right) 
+ -\, \sum_{i=1}^{P}\log(\sigma_{\theta})
+\end{align}
+\end{frame}
+% 		 SLIDE 19
+% %===============================================================================
+\begin{frame}{Model Plausibility Evidence}
+\scriptsize
+The posterior variances of $\ln(\sigma_{\mathrm{noise}}^2)$ and $\ln(\sigma_{\mathrm{pr}}^2)$ are derived by differentiating~(14) twice:
+\begin{align}
+\sigma^2_{\ln(\sigma_p^2)} &= \frac{2 \ln^2(\sigma_p^2)}{P - \frac{1}{\ln(\sigma_p^2)} \operatorname{Tr}(\mathbf{H}^{-1})} \\
+\sigma^2_{\ln(\sigma_{\text{noise}}^2)} &= \frac{2 \ln^2(\sigma_{\text{noise}}^2)}{N_D - P + \frac{1}{\ln(\sigma_{\text{noise}}^2)} \operatorname{Tr}(\mathbf{H}^{-1})} 
+\end{align}
+\textbf{The model evidence for evaluating the posterior model plausibility is expressed as}
+\begin{align}
+\pi_{\text{evid}}(\mathcal{D} \mid \boldsymbol{\xi}) 
+&= \int \pi_{\text{evid}}(\mathcal{D} \mid \boldsymbol{\sigma}, \boldsymbol{\xi}) \, \pi_{\text{pr}}(\boldsymbol{\sigma} \mid \boldsymbol{\xi}) \, d\boldsymbol{\sigma} \notag \\
+&\approx \pi_{\text{evid}}(\mathcal{D} \mid \boldsymbol{\sigma}, \boldsymbol{\xi})\big|_{\boldsymbol{\sigma} = \boldsymbol{\sigma}_{\mu}} \, \pi_{\text{pr}}(\boldsymbol{\sigma} \mid \boldsymbol{\xi})\big|_{\boldsymbol{\sigma} = \boldsymbol{\sigma}_{\mu}} \left( 2\pi \sigma_{\ln(\sigma_{\text{pr}}^2)} \sigma_{\ln(\sigma_{\text{noise}}^2)} \right)
+\end{align}
+Taking log for ease of calculation,
+\vspace{-0.1in}
+\begin{align}
+\ln \pi_{\text{evid}}(\mathcal{D} \mid \boldsymbol{\xi}) \approx \ 
+& -\frac{1}{2\ln(\sigma_{\text{noise}}^2)} \sum_{j=1}^{N_D} (u_D^j - u_{\theta_{\mu}}(x_D^j))^2
+- \frac{N_D}{2} \ln \left( 2\pi \ln(\sigma_{\text{noise}}^2) \right) \notag\\
+& - \frac{1}{2\ln(\sigma_{\text{pr}}^2)} \lVert \theta_{\mu} \rVert^2
+- \frac{P}{2} \ln \left( 2\pi \ln(\sigma_{\text{pr}}^2) \right)
++ \sum_{i=1}^{P}\log(\sigma_{\theta,i}) \notag\\
+& + \ln \pi_{\text{pr}}(\boldsymbol{\sigma}_{\mu} \mid \boldsymbol{\xi})
++ \ln \left( 2\pi \sigma_{\ln(\sigma_{\text{pr}}^2)} \sigma_{\ln(\sigma_{\text{noise}}^2)} \right)
+\end{align}
+\vspace{-0.15in}
+\textbf{The hyperprior:}
+\[
+\log \sigma^2 \sim \mathcal{N}(m, s^2); \text{ }
+\log p(\sigma^2) = -\log \sigma^2 - \log s - \frac{1}{2}\log(2\pi) - \frac{(\log \sigma^2 - m)^2}{2s^2}
+\]
+
+\end{frame}
+
+
+% %===============================================================================
+% 		 SLIDE 20
+% %===============================================================================
+
+\section{Architecture Selection Methodology}
+\subsection{Data Analysis}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+%
+\begin{frame}{General Architecture Hyperparameter Constraints}
+\footnotesize
+The receptive field at the final layer should capture the longest repeating pattern in the series. With kernel size k, total number of layers n and dilation base b and pattern length $l_{max}$, the receptive field at the last layer can be calculated as:
+\begin{equation}
+RF_n = 1 + \sum_{i=0}^{n-1} 2(k - 1)b^i = 1 + 2(k - 1) \cdot \frac{b^n - 1}{b - 1} \approx l_{max}
+\end{equation}
+\noindent
+Requird number of layers to capture the sequence length $l$:
+\begin{equation}
+n_{required} = \left\lceil \log_b \left( \frac{(l - 1)(b - 1)}{2(k - 1)} + 1 \right) \right\rceil
+\end{equation}
+\noindent
+Meal patterns represent semi-regular, high-impact events that strongly affect blood glucose dynamics.
+Capturing them in intermediate layers allows the model to learn temporal dependencies at this scale, improving prediction accuracy and physiological interpretability. We can see these patterns form the fourier analysis also. Any intermediate j th layer should capture mal pattern $l_{meal}$. 
+\begin{equation}
+RF_{\text{j}}^{(meal)} = 1 + 2(k - 1) \cdot \frac{b^j - 1}{b - 1} \cdot \delta t_{meal} \quad \approx l_{meal};  \forall\, j < n
+\end{equation}
+\noindent
+The receptive field has holes in it; that is there are entries in the input sequence that the output value is not dependent on. To solve this problem, for a receptive field with no holes, the kernel size k has to be at least as big as the dilation base b.
+\begin{equation}
+k \ge b
+\end{equation}
+
+\end{frame}
+
+%
+\begin{frame}{Fourier Analysis and Autocorrelation}
+\scriptsize
+Discrete Fourier transform offers an attractive analytical methodology for CGM data given the achievable dimension reduction without loss of essential information as well as its ability to eliminate noise\footnote{Use of Fourier Models for Analysis and Interpretation of Continuous Glucose Monitoring Glucose Profiles}. \\
+The autocorrelation function shows the correlation between blood glucose at one time step with lagged version of itself.  
+
+\begin{center}
+\begin{tabular}{c c}
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.5\textwidth]{Figures/explain/fourier_crazy.png} 
+&
+\includegraphics[trim = 0mm 0mm 0mm 0mm, clip, width=0.5\textwidth]{Figures/explain/autocorr.png} 
+\\
+$\text{Fourier analysis of blood glucose}$
+&
+$\text{Autocorrelation of blood glucose}$
+\end{tabular}
+\end{center}
+The first peak in the fourier analysis corresponds to the longest patternin time domain. The peak is at 0.0006944 in the frequency domain is equivalent to $(1/0.0006944)=1440$ in the time domain. So, the longest repeating pattern in the blood glucose data is 1440 minutes (daily pattern). \\
+In the autocorrelation figure we can see strong correlation upto 100 timesteps, after it shows negligible negative correlation. 
+
+\end{frame}
+
+% 
+\begin{frame}{Problem Specific Receptive Field Constraints}
+\footnotesize
+The meal sizes and meal times were varied $\pm 90$ minutes. The fourier analysis shows long and short term patterns in the data. The low frequency spikes near 0 corresponds to long term patterns in the time domain and the high frequency spikes corresponds to long term patterns. Most of the spikes in the fourier series is in low frequency zone, that means the data mostly shows long term patterns (i.e. daily or few-hour patterns).
+
+\noindent From the fourier analysis, the first peak is at time 1440 minutes with relatively high amplitude which corresponds to the daily bllod glucose pattern. In order to capture the long and short term pattern the receptive field of the TCN has to be atleast 1449 minutes long.  
+\begin{equation}
+RF_n = 1 + \sum_{i=0}^{n-1} 2(k - 1)b^i = 1 + 2(k - 1) \cdot \frac{b^n - 1}{b - 1} \approx 1440
+\end{equation}
+
+\vspace{0.5em}
+\noindent The meal times is associated with some randomness in the data. The daily meal timing varies between 109 (minimum) to 1000 (maximum) timesteps in the data. We can see short term meal patterns from the small peaks in the fourier analysis also. The second most significant peak after the first one corresponds to 260 minutes and the last significant peak corresponds to 642 minutes in time domain with a relatively high amplitude peak at 370 minutes. These short patterns acts as intermediate receptive field that are significant to capturing the data structure. If any intermediate layers have these receptive field, it can capture the meal pattern. We bound the intermediate layers to have receptive field ranging from 260 to 642.
+\begin{equation}
+RF_{\text{j}}^{(meal)} = 1 + 2(k - 1) \cdot \frac{b^j - 1}{b - 1} \cdot \delta t_{meal} \quad \in [260,642];\forall\, j < n
+\end{equation}
+
+\end{frame}
+
+%===============================================================================
+% 		 SLIDE 21
+% %===============================================================================
+\begin{frame}{Problem Specific Architecture Hyperparameter Constraints}
+\scriptsize
+\begin{itemize}
+\item From the Fourier analysis, we can see few short term and long term patterns (represented by the peaks). Filters capture these patterns. So based on the few long-term patterns seen above, number of filters in each layer starts from 2 and can go up as much as 512.\\
+\item The number of layers $n$ can be determined by equation (20)\footnote{Pelekis, Sotiris, et al. "In search of deep learning architectures for load forecasting: A comparative analysis and the impact of the covid-19 pandemic on model performance."} for a fixed number of kernel size $k$ and dilation base $b$. This is a fixed value, in this problem can range from 3 number of layers to 9 number of layers.
+\item The lower bound on te kernel size $k$ should start depending on te current dilation base $b$ following inequality (22). Wide kernel size tends to oversmooth data and may loose local patterns. For a long time series input ($\ge$ 1440) the upper bound on kernel size was set to 15. 
+\item The dilation base $b$ should satisfy Equation (24) for a fixed number of kernel size $k$. Based on calculation, the lower bound on dilation base is 2 and upper bound can be as large as 9 that satisfied the constrain. 
+\item Every layer of the encoder we decrease the temporal resolution (downsampling) and double the feature channels (number of filters), and every layer of the decoder we increase the temporal resolution (upsampling) and half the number of layer\footnote{Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional networks for biomedical image segmentation."},\footnote{Badrinarayanan, Vijay, Alex Kendall, and Roberto Cipolla. "Segnet: A deep convolutional encoder-decoder architecture for image segmentation."}.\\
+\end{itemize}
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 22
+% %===============================================================================
+
+\subsection{Pool of Architectures}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 23
+% %===============================================================================
+\begin{frame}{Selected Architectures}
+\footnotesize
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \textbf{Dilation} & \textbf{Filter Size} & \textbf{Layers} & \textbf{Encoder Architecture} & \textbf{Decoder Architecture} \\
+        \hline
+        2 & 3 & 5 & $[2,\,4,\,8,\,16,\,32]$ & $[32,\,16,\,8,\,4,\,2]$ \\
+        2 & 3 & 5 & $[4,\,8,\,16,\,32,64]$ & $[64,32,\,16,\,8,\,4]$ \\
+        2 & 3 & 5 & $[8,\,16,\,32,64,128]$ & $[128,64,32,\,16,\,8]$ \\
+        2 & 3 & 5 & $[16,\,32,64,128,256]$ & $[256,128,64,32,\,16]$ \\
+        2 & 3 & 5 & $[32,64,128,256,512]$ & $[512,256,128,64,32]$ \\
+        \hline
+        2 & 5 & 4 & $[2,\,4,\,8,\,16]$ & $[16,\,8,\,4,\,2]$ \\
+        2 & 5 & 4 & $[8,\,16,\,32,64]$ & $[64,32,\,16,\,8]$ \\
+        2 & 5 & 4 & $[16,\,32,64,128]$ & $[128,64,32,\,16]$ \\
+        2 & 5 & 4 & $[32,64,128,256]$ & $[256,128,64,32]$ \\
+        \hline
+        2 & 7 & 4 & $[2,\,4,\,8,\,16]$ & $[16,\,8,\,4,\,2]$ \\
+        2 & 7 & 4 & $[8,\,16,\,32,64]$ & $[64,32,\,16,\,8]$ \\
+        2 & 7 & 4 & $[16,\,32,64,128]$ & $[128,64,32,\,16]$ \\
+        2 & 7 & 4 & $[32,64,128,256]$ & $[256,128,64,32]$ \\
+        \hline
+    \end{tabular}
+    \label{tab:tcn_architectures}
+\end{table}
+
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 24
+% %===============================================================================
+
+\begin{frame}{Selected Architectures}
+\footnotesize
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \textbf{Dilation} & \textbf{Filter Size} & \textbf{Layers} & \textbf{Encoder Architecture} & \textbf{Decoder Architecture} \\
+        \hline
+        2 & 9 & 3 & $[2,\,4,\,8]$ & $[8,\,4,\,2]$ \\
+        2 & 9 & 3 & $[4,\,8,16]$ & $[16,8,\,4]$ \\
+        2 & 9 & 3 & $[8,16,32]$ & $[32,16,8]$ \\
+        2 & 9 & 3 & $[16,\,32,64]$ & $[64,32,\,16]$ \\
+        2 & 9 & 3 & $[32,64,128]$ & $[128,64,32]$ \\
+        2 & 9 & 3 & $[64,128,256]$ & $[256,128,64]$ \\
+        2 & 9 & 3 & $[128,256,512]$ & $[512,256,128]$ \\
+        \hline
+        2 & 11 & 3 & $[2,\,4,\,8]$ & $[8,\,4,\,2]$ \\
+        2 & 11 & 3 & $[4,\,8,16]$ & $[16,8,\,4]$ \\
+        2 & 11 & 3 & $[8,16,32]$ & $[32,16,8]$ \\
+        2 & 11 & 3 & $[16,\,32,64]$ & $[64,32,\,16]$ \\
+        2 & 11 & 3 & $[32,64,128]$ & $[128,64,32]$ \\
+        2 & 11 & 3 & $[64,128,256]$ & $[256,128,64]$ \\
+        \hline
+    \end{tabular}
+    \label{tab:tcn_architectures}
+\end{table}
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 25
+\begin{frame}{Selected Architectures}
+\footnotesize
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{Dilation} & \textbf{Filter Size} & \textbf{Layers} & \textbf{Encoder Architecture} & \textbf{Decoder Architecture} \\
+    \hline
+        3 & 5 & 3 & $[4,\,8,16]$ & $[16,8,\,4]$ \\
+        3 & 5 & 3 & $[8,16,32]$ & $[32,16,8]$ \\
+        3 & 5 & 3 & $[16,\,32,64]$ & $[64,32,\,16]$ \\
+        3 & 5 & 3 & $[32,64,128]$ & $[128,64,32]$ \\
+        3 & 5 & 3 & $[64,128,256]$ & $[256,128,64]$ \\
+        3 & 5 & 3 & $[128,256,512]$ & $[512,256,128]$ \\
+        \hline
+        3 & 7 & 3 & $[2,\,4,\,8]$ & $[8,\,4,\,2]$ \\
+        3 & 7 & 3 & $[4,\,8,16]$ & $[16,8,\,4]$ \\
+        3 & 7 & 3 & $[8,16,32]$ & $[32,16,8]$ \\
+        3 & 7 & 3 & $[16,\,32,64]$ & $[64,32,\,16]$ \\
+        3 & 7 & 3 & $[32,64,128]$ & $[128,64,32]$ \\
+        3 & 7 & 3 & $[64,128,256]$ & $[256,128,64]$ \\
+        \hline
+        \end{tabular}
+    \label{tab:tcn_architectures}
+\end{table}
+\end{frame}
+% 
+\begin{frame}{Selected Architectures}
+\footnotesize
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{Dilation} & \textbf{Filter Size} & \textbf{Layers} & \textbf{Encoder Architecture} & \textbf{Decoder Architecture} \\
+    \hline
+        3 & 9 & 3 & $[2,\,4,\,8]$ & $[8,\,4,\,2]$ \\
+        3 & 9 & 3 & $[4,\,8,16]$ & $[16,8,\,4]$ \\
+        3 & 9 & 3 & $[8,16,32]$ & $[32,16,8]$ \\
+        3 & 9 & 3 & $[16,\,32,64]$ & $[64,32,\,16]$ \\
+        3 & 9 & 3 & $[32,64,128]$ & $[128,64,32]$ \\
+        3 & 9 & 3 & $[64,128,256]$ & $[256,128,64]$ \\
+        \hline
+        3 & 11 & 2 & $[4,\,8]$ & $[8,\,4]$ \\
+        3 & 11 & 2 & $[8,16]$ & $[16,8]$ \\
+        3 & 11 & 2 & $[16,32]$ & $[32,16]$ \\
+        3 & 11 & 2 & $[32,64]$ & $[64,32]$ \\
+        3 & 11 & 2 & $[64,128]$ & $[128,64]$ \\
+        3 & 11 & 2 & $[128,256]$ & $[256,128]$ \\
+        \hline
+        \end{tabular}
+    \label{tab:tcn_architectures}
+\end{table}
+\end{frame}
+%===============================================================================
+\begin{frame}{Selected Architectures}
+\footnotesize
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{Dilation} & \textbf{Filter Size} & \textbf{Layers} & \textbf{Encoder Architecture} & \textbf{Decoder Architecture} \\
+    \hline
+        4 & 5 & 3 & $[2,\,4,\,8]$ & $[8,\,4,\,2]$ \\
+        4 & 5 & 3 & $[4,\,8,16]$ & $[16,8,\,4]$ \\
+        4 & 5 & 3 & $[8,16,32]$ & $[32,16,8]$ \\
+        4 & 5 & 3 & $[16,\,32,64]$ & $[64,32,\,16]$ \\
+        4 & 5 & 3 & $[32,64,128]$ & $[128,64,32]$ \\
+        4 & 5 & 3 & $[64,128,256]$ & $[256,128,64]$ \\
+        \hline
+        4 & 7 & 2 & $[4,\,8]$ & $[8,\,4]$ \\
+        4 & 7 & 2 & $[8,16]$ & $[16,8]$ \\
+        4 & 7 & 2 & $[16,32]$ & $[32,16]$ \\
+        4 & 7 & 2 & $[32,64]$ & $[64,32]$ \\
+        4 & 7 & 2 & $[64,128]$ & $[128,64]$ \\
+        4 & 7 & 2 & $[128,256]$ & $[256,128]$ \\
+        \hline
+     \end{tabular}
+    \label{tab:tcn_architectures}
+\end{table}
+\end{frame}
+%
+% %===============================================================================
+% 		 SLIDE 26
+% %===============================================================================
+\begin{frame}{Selected Architectures}
+\footnotesize
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{Dilation} & \textbf{Filter Size} & \textbf{Layers} & \textbf{Encoder Architecture} & \textbf{Decoder Architecture} \\
+    \hline
+        4 & 9 & 2 & $[4,\,8]$ & $[8,\,4]$ \\
+        4 & 9 & 2 & $[8,16]$ & $[16,8]$ \\
+        4 & 9 & 2 & $[16,32]$ & $[32,16]$ \\
+        4 & 9 & 2 & $[32,64]$ & $[64,32]$ \\
+        4 & 9 & 2 & $[64,128]$ & $[128,64]$ \\
+        4 & 9 & 2 & $[128,256]$ & $[256,128]$ \\
+        \hline
+        4 & 11 & 2 & $[4,\,8]$ & $[8,\,4]$ \\
+        4 & 11 & 2 & $[8,16]$ & $[16,8]$ \\
+        4 & 11 & 2 & $[16,32]$ & $[32,16]$ \\
+        4 & 11 & 2 & $[32,64]$ & $[64,32]$ \\
+        4 & 11 & 2 & $[64,128]$ & $[128,64]$ \\
+        4 & 11 & 2 & $[128,256]$ & $[256,128]$ \\
+        \hline
+     \end{tabular}
+    \label{tab:tcn_architectures}
+\end{table}
+\end{frame}
+% 
+\begin{frame}{Validation Metric: CRPS (Gaussian) + Smoothness}
+\small
+
+\textbf{CRPS (Continuous Ranked Probability Score)}
+\[
+\mathrm{CRPS}_{k+j}
+=\int_{-\infty}^{\infty}
+\big(F_{k+j}(x)-\mathbf{1}_{\{x\ge G^{(k+j)}\}}\big)^2\,dx,
+\qquad j=1,\dots,K_f .
+\]
+
+\text{CRPS closed form for a Gaussian predictive distribution}\footnote{Calibrated Ensemble Forecasts Using Quantile Regression Forests and Ensemble Model Output Statistics, Taillardat, Zamo \& Naveau (2016)}
+\[
+\mathrm{CRPS}_{k+j}
+=\tilde{\sigma}_{k+j}\!\left[
+z_{k+j}\big(2\Phi(z_{k+j})-1\big)
++2\phi(z_{k+j})-\frac{1}{\sqrt{\pi}}
+\right],
+\qquad
+z_{k+j}=\frac{G^{(k+j)}-G_{\text{TCN}}^{(k+j)}}{\tilde{\sigma}_{k+j}} .
+\]
+
+\begin{columns}[T]
+
+  \begin{column}{0.6\textwidth}
+    \textbf{Smoothness penalty (per prediction window $W_k$)}
+    \[
+    \Delta^2 G_{\text{TCN}}^{(k+j)}
+    =G_{\text{TCN}}^{(k+j+1)} - 2G_{\text{TCN}}^{(k+j)}
+     + G_{\text{TCN}}^{(k+j-1)},
+    \]
+    \[
+    S_k
+    =\frac{1}{K_f}\sum_{j=1}^{K_f}
+    \frac{\big|\Delta^2 G_{\text{TCN}}^{(k+j)}\big|}
+    {\mathrm{IQR}\big(\{G^{(k+1)},\dots,G^{(k+K_f)}\}\big)} .
+    \]
+
+    \textbf{Final validation metric (per window $k$)}
+    \[
+    \overline{\mathrm{CRPS}}_k
+    =\frac{1}{K_f}\sum_{j=1}^{K_f}\mathrm{CRPS}_{k+j},
+    \qquad
+    d_k=\overline{\mathrm{CRPS}}_k + \lambda\,S_k .
+    \]
+  \end{column}
+
+  % ---------------- Right column: figure ----------------
+  \begin{column}{0.4\textwidth}
+    \centering
+    \begin{figure}
+      \includegraphics[width=\linewidth]{Figures/data/crps.png}
+      \caption*{Illustration of the CRPS method}
+    \end{figure}
+  \end{column}
+\end{columns}
+
+\end{frame}
+%===============================================================================
+% 		 SLIDE 27
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE 28
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE 29
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE 30
+% %===============================================================================
+\begin{frame}{UVA/Padova T1D Simulator Data: Glucose/Insulin Dynamics}
+\small
+
+\textbf{Glucose two-compartment:}
+\[
+\dot G_p = EGP(t) + \textcolor{Blue}{Ra(t)} - U_{ii}(t) - U_{id}(t) - k_1 G_p + k_2 G_t - E(t), \quad
+\dot G_t = -U_{id}(t) + k_1 G_p - k_2 G_t
+\]
+
+\textbf{Endogenous glucose production with delayed hormone actions:}
+\[
+EGP(t) = k_{p1} - k_{p2} G_p(t) - k_{p3} X_L(t) + \xi\, X_H(t)
+\]
+\[
+\dot I'(t) = -k_i\!\left(I'(t) - I(t)\right),\qquad
+\dot X_L(t) = -k_L X_L(t) + k_L\!\left(I'(t) - I_b\right)
+\]
+\[
+\dot X_H(t) = -k_H X_H(t) + k_H \max\!\big(H(t) - H_b,\,0\big)
+\]
+
+\textbf{Insulin-independent \& insulin-dependent utilization:}
+\[
+U_{ii}(t)=F_{cns},\qquad
+U_{id}(t) = \frac{\big(V_{m0}+V_{mx}X_U(t)\big)\,G_t}{K_{m0}+G_t}\,\Big[1+r_1\,\mathrm{risk}\!\big(G_p\big)\Big]
+\]
+\[
+\dot X_U(t) = -p_{2U} X_U(t) + p_{2U}\big(I(t)-I_b\big)
+\]
+
+\textbf{Renal excretion (piecewise):}\;
+$
+E(t)=
+\begin{cases}
+k_{e1}\,[G_p(t)-k_{e2}], & G_p(t)>k_{e2} \\
+0, & \text{otherwise}
+\end{cases}
+$
+
+\vspace{0.5em}
+\scriptsize
+\textbf{States/Parameters Table:}
+\begin{tabular}{@{}ll@{\quad}ll@{}}
+\toprule
+$G_p,G_t$ & Plasma/tissue glucose & $I,I'$ & Plasma \& delayed insulin \\
+$X_L$ & Delayed insulin effect on EGP & $X_H$ & Delayed glucagon effect on EGP \\
+$X_U$ & Insulin action on utilization & $H$ & Plasma glucagon \\
+$EGP$ & Hepatic glucose output & $Ra$ & Meal glucose appearance \\
+$U_{ii},U_{id}$ & Glucose utilization (CNS/insulin–dep) & $E$ & Renal excretion \\
+$k_1,k_2$ & Exchange rates (plasma $\leftrightarrow$ tissue) & $k_{p1},k_{p2},k_{p3}$ & EGP params \\
+$\xi$ & Liver responsivity to glucagon & $k_i,k_L$ & Insulin delay/action time constants \\
+$k_H$ & Glucagon delay time constant & $I_b,H_b,G_b$ & Basal insulin/glucagon/glucose \\
+$V_{m0},V_{mx}$ & Utilization capacities & $K_{m0}$ & Michaelis constant \\
+$p_{2U}$ & Insulin-action turnover & $r_1$ & Risk scaling (hypoglycemia) \\
+$k_{e1},k_{e2}$ & Renal excretion params &  &  \\
+\bottomrule
+\end{tabular}
+
+\end{frame}
+
+% ---------------- Slide 2 ----------------
+\begin{frame}{UVA/Padova T1D Simulator Data: Meal/Hormone Dynamics}
+\small
+
+\textbf{Gastro-intestinal transit $\to$ rate of appearance $Ra(t)$:}
+\[
+\dot Q_{sto,1} = -k_{gri} Q_{sto,1} + \sum_j \textcolor{Red}{D_j}\,d_j(t),\quad
+\dot Q_{sto,2} = -k_{empt}(Q_{sto};D)\,Q_{sto,2} + k_{gri} Q_{sto,1}
+\]
+\[
+\dot Q_{gut} = k_{empt}(Q_{sto})\,Q_{sto,2} - k_{abs} Q_{gut},\qquad
+\textcolor{Blue}{Ra(t)} = f\,\frac{k_{abs}\,Q_{gut}}{BW},\quad
+\]
+
+\textbf{Subcutaneous insulin (2-depot) \& plasma appearance:}
+\[
+\dot I_{sc,1} = -k_{d1} I_{sc,1} + \textcolor{cyan}{u_{\mathrm{ins}}(t)},\quad
+\dot I_{sc,2} = k_{d1} I_{sc,1} - k_{d2} I_{sc,2},\quad
+R_I(t) = k_{a1} I_{sc,1} + k_{a2} I_{sc,2}
+\]
+
+\textbf{Glucagon secretion (static + dynamic) and kinetics (compact form):}
+\[
+\dot H = -n\,H + SR_H(t) + Ra_H(t),\quad
+SR_H(t)=SR_{H,s}(t)+SR_{H,d}(t),\quad
+SR_{H,d}(t)=\delta\,\max\!\big(-\tfrac{dG_p}{dt},0\big)
+\]
+\[
+\quad
+\dot H_{sc,1}=-k_{h1}H_{sc,1}+u_{gluc},\ \dot H_{sc,2}=k_{h1}H_{sc,1}-k_{h2}H_{sc,2}
+\]
+
+\textbf{Hypoglycemia nonlinearity (risk function):}\;
+$\displaystyle
+\mathrm{risk}(G_p)=
+\begin{cases}
+0, & G_p\ge G_b\\
+\big[\log_{10}(G_p/G_b)\big]^2, & G_{th}\le G_p<G_b\\
+\big[\log_{10}(G_{th}/G_b)\big]^2, & G_p<G_{th}
+\end{cases}
+$
+
+\vspace{0.5em}
+\scriptsize
+\textbf{States/Parameters Table:}
+\begin{tabular}{@{}ll@{\quad}ll@{}}
+\toprule
+$Q_{sto,1},Q_{sto,2}$ & Solid/liquid stomach content & $Q_{gut}$ & Intestinal content \\
+$k_{gri}$ & Gastric grinding rate & $k_{empt}$ & Nonlinear gastric emptying rate \\
+$k_{abs}$ & Intestinal absorption rate & $f$ & Fraction to plasma (CHO) \\
+$BW$ & Body weight & $D$ & Meal size (CHO) \\
+$I_{sc,1},I_{sc,2}$ & SC insulin depots & $u_{\mathrm{ins}}(t)$ & Insulin input (bolus/basal) \\
+$k_{d1},k_{d2}$ & SC loss rates & $k_{a1},k_{a2}$ & SC absorption to plasma \\
+$R_I(t)$ & Plasma insulin appearance & $n$ & Glucagon clearance rate \\
+$SR_{H,s},SR_{H,d}$ & Static/dynamic secretion & $\delta$ & Sensitivity to $-dG_p/dt$ \\
+$H_{sc,1},H_{sc,2}$ & SC glucagon depots & $k_{h1},k_{h2}$ & SC glucagon rates \\
+$G_b,G_{th}$ & Basal \& threshold glucose & $r_1$ & Hypo-risk gain in $U_{id}$ \\
+\bottomrule
+\end{tabular}
+
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 31
+% %===============================================================================
+
+% %===============================================================================
+% 		 SLIDE 32
+% %===============================================================================
+
+\section{Current Results}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection]
+\end{frame}
+%
+\begin{frame}{Results}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{Figures/proposal/16_32.png}\\
+$\text{Architecture Encoder [16,32] Decoder [32,16]}$
+
+\includegraphics[width=0.5\textwidth]{Figures/proposal/32_64.png}\\
+$\text{Architecture Encoder [32,64] Decoder [64,32]}$
+   \end{center}
+\end{frame}
+% %===============================================================================
+% 		 SLIDE 33
+%
+\begin{frame}{Results}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{Figures/proposal/8_16_32.png}\\
+$\text{Architecture Encoder [8,16,32] Decoder [32,16,8]}$
+
+   \end{center}
+\end{frame}
+% %===============================================================================
+% %===============================================================================
+% 		 SLIDE 34
+% %===============================================================================
+\section{Summary of Future work}
+\begin{frame}{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 35
+% %===============================================================================
+\begin{frame}{Summary of Future work}
+\begin{itemize}
+
+\end{itemize}
+\end{frame}
+
+% %===============================================================================
+% 		 SLIDE 36
+% %===============================================================================
+\begin{frame}
+    \begin{center}
+        \Huge{Thank You!}
+    \end{center} \\
+    
+    \scriptsize{\textbf{List of publications}}\\
+    \scriptsize
+    \begin{enumerate}
+
+        
+    \end{enumerate}
+    \begin{center}
+    \scriptsize
+        We gratefully acknowledge the support by the U.S. National Science Foundation (NSF) CAREER Award CMMI-2143662\\
+
+    \end{center}
+\end{frame}
+    
+
+
+\end{document}
+

@@ -1,0 +1,124 @@
+\usetheme{Warsaw}
+%\setbeamerfont{structure}{family=\rmfamily,shape=\itshape,series=\bfseries}
+\setbeamerfont{structure}{family=\rmfamily,series=\bfseries}
+%\usecolortheme{albatross}
+%\usecolortheme{crane}
+
+%\usecolortheme[named=MidnightBlue]{structure}
+%============================================================UB blue
+\definecolor{UB}{RGB}{0,91,187}
+\usecolortheme[named=UB]{structure}
+%============================================================
+
+
+%\usecolortheme[named=white]{structure}
+\setbeamertemplate{frametitle}[default][colsep=-4bp,shadow=false]
+\setbeamertemplate{items}[ball] 
+\setbeamertemplate{blocks}[rounded][shadow=true]
+\setbeamertemplate{footline}[split,page number]{}
+\setbeamertemplate{headline}{}
+%\setbeamercolor{background canvas}{bg=blue!20!black}
+
+%\setbeamercolor{block title}{bg=MidnightBlue,fg=white}
+\setbeamercolor{block title}{bg=UB,fg=white}
+
+\setbeamercolor{title in headline}{bg=blue}
+%\setbeamercolor{normal text}{fg=white}
+%\setbeamercolor{background canvas}{bg=black}
+%\setbeamercolor{block body}{bg=white!10!black}
+%\setbeamercolor{block body alerted}{bg=white!10!black}
+%\setbeamercolor{block body example}{bg=white!10!black}
+\setbeamercolor{alerted text}{fg=red}
+%\setbeamerfont{block title alerted}{series=\bfseries}
+%\setbeamerfont{example text}{series=\bfseries}
+%\setbeamerfont{block title}{series=\bfseries}
+\setbeamertemplate{title page}[default][colsep=-4bp,rounded=true,shadow=false]
+
+
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\setbeamercolor{alerted text}{fg=red}
+%\setbeamercolor{block title}{bg=MidnightBlue,fg=white}
+%\setbeamercolor{title in headline}{bg=blue}
+%\usefonttheme[onlymath]{serif}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{sidebartab}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+%\usecolortheme{orchid}%rose}%lily}%orchid} % inner
+%\useinnertheme[shadow]{rounded}
+%\useoutertheme{infolines}
+%\useoutertheme{miniframes}
+%\useoutertheme{shadow}
+%\useoutertheme{sidebar}
+%\useoutertheme{smoothbars}
+%\useoutertheme{smoothtree}
+%\useoutertheme{split}
+%\useoutertheme{tree}
+
+\setbeamercolor*{author in head/foot}{parent=palette tertiary}
+\setbeamercolor*{title in head/foot}{parent=palette secondary}
+\setbeamercolor*{date in head/foot}{parent=palette primary}
+
+\setbeamercolor*{section in head/foot}{parent=palette tertiary}
+\setbeamercolor*{subsection in head/foot}{parent=palette primary}
+
+
+\definecolor{gold}{HTML}{FDD017}
+\definecolor{mygreen}{cmyk}{0.82,0.11,1,0.25}
+
+\setbeamersize{text margin left=15pt,text margin right=15pt}
+\setbeamercolor{frametitle}{bg=GreenYellow!20,fg=black}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{frametitle}{family=\fontfamily{\rmdefault}\selectfont}
+\setbeamerfont{section in toc}{size=\normalsize}
+\setbeamerfont{subsection in toc}{size=\small}
+\usefonttheme{structurebold}
+    \setbeamerfont{title}{family=\fontfamily{\rmdefault},size=\Large,series=\bfseries,parent=structure}
+	\setbeamerfont{subtitle}{family=\fontfamily{\rmdefault},size=\normalsize,parent=structure}
+    \setbeamerfont{author}{size=\large,parent=structure}
+    \setbeamerfont{institute}{size=\small,shape=\itshape,parent=structure}
+    \setbeamerfont{date}{size=\footnotesize,parent=structure}
+    
+    
+\defbeamertemplate*{footline}{infolines theme}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor
+   % \usebeamerfont{author in head/foot}\insertshortauthor~~(\insertshortinstitute)
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\defbeamertemplate*{headline}{infolines theme}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,right]{section in head/foot}%
+    \usebeamerfont{section in head/foot}\insertsectionhead\hspace*{2ex}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,left]{subsection in head/foot}%
+    \usebeamerfont{subsection in head/foot}\hspace*{2ex}\insertsubsectionhead
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+    
+
+
+\beamertemplatenavigationsymbolsempty

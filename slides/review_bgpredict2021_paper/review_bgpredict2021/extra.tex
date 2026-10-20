@@ -1,0 +1,23 @@
+\begin{frame}{Probabilistic Machine Learning}
+\footnotesize
+The bayes theorem
+\begin{equation}
+\pi_{\text {post }}(\boldsymbol{\theta} \mid \mathbf{D})=\frac{\pi_{\text {like }}(\mathbf{D} \mid \boldsymbol{\theta}) \pi_{\text {prior }}(\boldsymbol{\theta})}{\pi_{\text {evid }}(\mathbf{D})}
+\end{equation}
+The likelihood
+\begin{equation}
+\pi_{l i k e}(\mathbf{D} \mid \boldsymbol{\theta})=\frac{\pi(\boldsymbol{\theta}, \mathbf{D})}{\pi_{\text {prior }}(\boldsymbol{\theta})}
+\end{equation}
+The evidence
+\begin{equation}
+\pi_{\text {evid }}(\mathbf{D})=\int_{\Theta} \pi_{\text {like }}(\mathbf{D} \mid \boldsymbol{\theta}) \pi_{\text {prior }}(\boldsymbol{\theta}) d \boldsymbol{\theta} .
+\end{equation}
+MAP estimate
+\begin{equation}
+\theta_{M A P}=\underset{\theta \in \Theta}{\operatorname{argmax}} \pi_{\text {post }}(\boldsymbol{\theta} \mid \mathbf{D}) .
+\end{equation}
+Central Limit Theorem
+\begin{equation}
+\pi\left(\boldsymbol{\theta} \mid \mathbf{D}^n\right)=\frac{\pi\left(\mathbf{D}^n \mid \boldsymbol{\theta}\right) \pi(\boldsymbol{\theta})}{\pi\left(\mathbf{D}^n\right)} \stackrel{D}{\rightarrow} \mathcal{N}\left(\hat{\boldsymbol{\theta}}, \mathbf{I}(\hat{\boldsymbol{\theta}})^{-1}\right)
+\end{equation}
+\end{frame}

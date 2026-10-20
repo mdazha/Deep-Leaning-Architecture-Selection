@@ -1,0 +1,231 @@
+\documentclass[8pt,xcolor=dvipsnames,compress]{beamer}
+
+\usepackage{pcelab_theme}
+\usepackage{pcelab_style}
+\usepackage{multimedia}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{hyperref}
+%\usepackage[algoruled,longend]{algorithm2e}
+\usepackage{array}
+\graphicspath{ {./images/} }
+\usepackage{amsmath}
+\newcolumntype{C}{>{\centering\arraybackslash} m{1000.3in} }
+\newcolumntype{M}{>{\centering\arraybackslash} m{1000.in} }
+\everymath{\displaystyle}
+\long\def\/*#1*/{}
+
+%\beamertemplatenavigationsymbolsempty
+%\usepackage[square,numbers]{natbib}
+\usepackage{tcolorbox}
+\usepackage{rotating}
+\usepackage{xcolor}
+\usepackage[export]{adjustbox}
+\usepackage{caption}
+\usepackage{subcaption}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\thetab}{\boldsymbol\theta}
+
+%===============================================================================
+% 					 Presentation Title and Author  
+%===============================================================================
+\title[Fall,2019]{
+Paper Review:\\
+Weight Uncertainty in Neural Networks
+}
+\subtitle{Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015, June). Weight uncertainty in neural network. In International conference on machine learning (pp. 1613-1622). PMLR.}
+
+\author{Md Azharul Islam}
+
+\institute[UB]{Advisor:  Dr. Danial Faghihi\\University at Buffalo\\}
+    \titlegraphic{\includegraphics[width=3cm]{PCE_logo1.png}}
+
+\date[\today]{\today}
+
+
+\begin{document}
+% \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+\maketitle
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+\begin{frame}{Point estimate in Neural Networks}
+The weights of a neural network are learnt by maximum likelihood estimate (MLE), where the optimization is done with gradient descent, 
+\begin{equation}
+\begin{aligned}
+\mathbf{w}^{\mathrm{MLE}} & =\arg \max _{\mathbf{w}} \log P(\mathcal{D} \mid \mathbf{w}) \\
+& =\arg \max _{\mathbf{w}} \sum_{i} \log P\left(\mathbf{y}_{i} \mid \mathbf{x}_{i}, \mathbf{w}\right) .
+\end{aligned}
+\end{equation}
+If a regularization term is used in the loss function say a prior, the weights can be found using maximum apoateriori (MAP) estimates,
+\begin{equation}
+\begin{aligned}
+\mathbf{w}^{\mathrm{MAP}} & =\arg \max _{\mathbf{w}} \log P(\mathbf{w} \mid \mathcal{D}) \\
+& =\arg \max _{\mathbf{w}} \log P(\mathcal{D} \mid \mathbf{w})+\log P(\mathbf{w}) .
+\end{aligned}
+\end{equation}
+
+If $\mathbf{w}$ are given a Gaussian prior, this yields L2 regularisation (or weight decay). If $\mathbf{w}$ are given a Laplace prior, then L1 regularisation is recovered.
+\end{frame}
+
+
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+\begin{frame}{Bayes by Backpropagation}
+
+Prediction using the posterior distribution, P(w)\\
+\begin{equation}
+P(\hat{\mathbf{y}} \mid \hat{\mathbf{x}})=\mathbb{E}_{P(\mathbf{w} \mid \mathcal{D})}[P(\hat{\mathbf{y}} \mid \hat{\mathbf{x}}, \mathbf{w})]
+\end{equation}
+The cost function to update the variational parameters $\theta$, from the variational distribution $q(\mathbf{w} \mid \theta)$,  \\
+
+\begin{equation}
+\begin{aligned}
+\theta^{\star} & =\arg \min _{\theta} \operatorname{KL}[q(\mathbf{w} \mid \theta) \| P(\mathbf{w} \mid \mathcal{D})] \\
+& =\arg \min _{\theta} \int q(\mathbf{w} \mid \theta) \log \frac{q(\mathbf{w} \mid \theta)}{P(\mathbf{w}) P(\mathcal{D} \mid \mathbf{w})} \mathrm{d} \mathbf{w} \\
+& =\arg \min _{\theta} \operatorname{KL}[q(\mathbf{w} \mid \theta) \| P(\mathbf{w})]-\mathbb{E}_{q(\mathbf{w} \mid \theta)}[\log P(\mathcal{D} \mid \mathbf{w})]
+\end{aligned}
+\end{equation}
+
+For simplicity we write the cost function as, 
+\begin{equation}
+\begin{aligned}
+\mathcal{F}(\mathcal{D}, \theta)=\operatorname{KL}[q(\mathbf{w} \mid \theta) & \| P(\mathbf{w})] \\
+& -\mathbb{E}_{q(\mathbf{w} \mid \theta)}[\log P(\mathcal{D} \mid \mathbf{w})]
+\end{aligned}
+\end{equation}
+
+\end{frame}
+
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+\begin{frame}{Computing the Cost Function}
+
+\textbf{Re-parameterization trick:}
+$\epsilon$ is a random variable having a probability density given by $q(\epsilon)$ and $\mathbf{w}=t(\theta, \epsilon)$ where $t(\theta, \epsilon)$ is a deterministic function. The deterministic function $t(\theta, \epsilon)$ transforms a sample of parameter-free noise $\epsilon$ and the variational posterior parameters $\theta$ into a sample from the variational posterior. 
+\begin{equation}
+\frac{\partial}{\partial \theta} \mathbb{E}_{q(\mathbf{w} \mid \theta)}[f(\mathbf{w}, \theta)]=\mathbb{E}_{q(\epsilon)}\left[\frac{\partial f(\mathbf{w}, \theta)}{\partial \mathbf{w}} \frac{\partial \mathbf{w}}{\partial \theta}+\frac{\partial f(\mathbf{w}, \theta)}{\partial \theta}\right]
+\end{equation}
+The cost function for monte-carlo sampling,
+\begin{equation}
+\begin{aligned}
+\mathcal{F}(\mathcal{D}, \theta) \approx \sum_{i=1}^{n} \log q\left(\mathbf{w}^{(i)} \mid \theta\right)- & \log P\left(\mathbf{w}^{(i)}\right) \\
+& -\log P\left(\mathcal{D} \mid \mathbf{w}^{(i)}\right)
+\end{aligned}
+\end{equation}
+where $\mathbf{w}^{(i)}$ denotes the $i$ th Monte Carlo sample drawn from the variat
+\end{frame}
+
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+\begin{frame}{Methodology}
+
+1. Sample $\epsilon \sim \mathcal{N}(0, I)$.
+
+2. Let $\mathbf{w}=\mu+\log (1+\exp (\rho)) \circ \epsilon$.
+
+3. Let $\theta=(\mu, \rho)$.
+
+4. Let $f(\mathbf{w}, \theta)=\log q(\mathbf{w} \mid \theta)-\log P(\mathbf{w}) P(\mathcal{D} \mid \mathbf{w})$.
+
+5. Calculate the gradient with respect to the mean
+
+$$
+\Delta_{\mu}=\frac{\partial f(\mathbf{w}, \theta)}{\partial \mathbf{w}}+\frac{\partial f(\mathbf{w}, \theta)}{\partial \mu}
+$$
+
+6. Calculate the gradient with respect to the standard deviation parameter $\rho$
+
+$$
+\Delta_{\rho}=\frac{\partial f(\mathbf{w}, \theta)}{\partial \mathbf{w}} \frac{\epsilon}{1+\exp (-\rho)}+\frac{\partial f(\mathbf{w}, \theta)}{\partial \rho}
+$$
+
+7. Update the variational parameters:
+
+$$
+\begin{aligned}
+& \mu \leftarrow \mu-\alpha \Delta_{\mu} \\
+& \rho \leftarrow \rho-\alpha \Delta_{\rho} .
+\end{aligned}
+$$
+
+\end{frame}
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+\begin{frame}{Minibatch optimization}
+
+Training data $D$ is randomly split into a partition of $M$ equally-sized subsets, $D_1,D_2,...,D_M$.
+
+\begin{equation}
+\begin{aligned}
+\mathcal{F}_{i}^{\mathrm{EQ}}\left(\mathcal{D}_{i}, \theta\right)=\frac{1}{M} \mathrm{KL}[q(\mathbf{w} \mid \theta) \| P(\mathbf{w})] & \\
+& -\mathbb{E}_{q(\mathbf{w} \mid \theta)}\left[\log P\left(\mathcal{D}_{i} \mid \mathbf{w}\right)\right]
+\end{aligned}
+\end{equation}
+
+If we want to weight the complexity cost relative to the likelihood cost, 
+
+\begin{equation}
+\begin{aligned}
+\mathcal{F}_{i}^{\pi}\left(\mathcal{D}_{i}, \theta\right)=\pi_{i} \operatorname{KL}[q(\mathbf{w} \mid \theta) & \| P(\mathbf{w})] \\
+& -\mathbb{E}_{q(\mathbf{w} \mid \theta)}\left[\log P\left(\mathcal{D}_{i} \mid \mathbf{w}\right)\right]
+\end{aligned}
+\end{equation}
+
+Then the cost function becomes $\mathbb{E}_{M}\left[\sum_{i=1}^{M} \mathcal{F}_{i}^{\pi}\left(\mathcal{D}_{i}, \theta\right)\right]=\mathcal{F}(\mathcal{D}, \theta)$,\\
+where $\mathbb{E}_{M}$ denotes an expectation over the random partitioning of minibatches.
+
+The weight, $\pi_{i}=\frac{2^{M-i}}{2^{M}-1}$
+\end{frame}
+
+
+
+
+%===============================================================================
+% SLIDE
+%===============================================================================
+\begin{frame}{The Sampling}
+
+The paper uses what is called "Thompson Sampling". Thompson sampling proceeds as follows: \\
+
+1. Sample a new set of parameters for the model.
+
+2. Pick the action with the highest expected reward according to the sampled parameters.
+
+3. Update the model. Go to 1 .\\
+.\\
+For neural networks.\\
+1. Sample weights from the variational posterior: $\mathbf{w} \sim$ $q(\mathbf{w} \mid \theta)$.
+
+2. Receive the context $x$.
+
+3. Pick the action $a$ that minimises $\mathbb{E}_{P(r \mid x, a, \mathbf{w})}[r]$
+
+4. Receive reward $r$.
+
+5. Update variational parameters $\theta$ according to Section 3. Go to 1.
+
+
+\end{frame}
+
+
+
+
+
+
+
+\end{document}

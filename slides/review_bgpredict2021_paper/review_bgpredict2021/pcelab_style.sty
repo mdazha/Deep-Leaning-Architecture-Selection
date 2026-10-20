@@ -1,0 +1,248 @@
+\usepackage[latin1]{inputenc}
+\usepackage{amssymb,amsmath,mathrsfs}                 % Matematica
+\usepackage{amsthm}
+%\usepackage{natbib}
+\usepackage[square,numbers]{natbib}
+\usepackage{enumerate}
+\usepackage{color}
+%\usepackage{subfigure}
+%\usepackage{upgreek}
+\usefonttheme[onlymath]{serif}
+
+
+%\renewcommand{\baselinestretch}{1.5}
+%\everymath{\displaystyle}
+
+\newcommand{\bJ}{\boldsymbol{J }}
+\newcommand{\bx}{\boldsymbol{x }}
+
+\newcommand{\bnabla}{\boldsymbol{\nabla }}
+\newcommand{\Hf}{\mathscr{H}}
+% Itens
+\newcommand{\itmz}[1]{
+\begin{itemize}
+\begin{minipage}{.9\hsize}
+#1
+\end{minipage}
+\end{itemize}
+}
+% Enum
+\newcommand{\enum}[1]{
+\begin{enumerate}
+\begin{minipage}{0.9\hsize}
+#1
+\end{minipage}
+\end{enumerate}
+}
+% Novo slide com itens
+\newcommand{\islide}[2]{
+\frame{\frametitle{#1}
+\begin{itemize}
+\begin{minipage}{0.9\hsize}
+#2
+\end{minipage}
+\end{itemize}
+}
+}
+% Slide padrao
+\newcommand{\fslide}[2]{
+\frame{\frametitle{#1}
+#2
+}
+}
+% Slide padrao
+\newcommand{\slide}[2]{
+\frame{\frametitle{#1}
+#2
+}
+}
+% Alert block
+\newcommand{\abloco}[2]{
+\begin{alertblock}{#1}
+\begin{minipage}{1.\hsize}
+#2
+\end{minipage}
+\end{alertblock}
+}
+% Example block
+\newcommand{\ebloco}[2]{
+\begin{exampleblock}{#1}
+\begin{minipage}{1.\hsize}
+#2
+\end{minipage}
+\end{exampleblock}
+}
+% Block
+\newcommand{\bloco}[2]{
+\begin{block}{#1}
+\begin{minipage}{1.\hsize}
+#2
+\end{minipage}
+\end{block}
+}
+
+% constomized Block
+\newenvironment<>{problock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{#1}%
+      \par%
+      \mode<presentation>{%
+        \setbeamercolor{block title}{fg=white,bg=orange!70!black}
+       \setbeamercolor{block body}{fg=black,bg=olive!20}
+       \setbeamercolor{itemize item}{fg=orange!20!black}
+       \setbeamertemplate{itemize item}[]
+     }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+%
+
+% Inserir resposta
+\newcommand{\itema}[2]{\uncover<#1->{\item \alert<#1>{#2}}}
+\newcommand{\resp}{\fbox{\bf Resposta:}}
+\newcommand{\eqn}[1]{\begin{eqnarray*}#1\end{eqnarray*}}
+\newcommand{\sis}[1]{\begin{eqnarray*}\left.\begin{array}{rcl}#1\end{array}\right\}\end{eqnarray*}}
+\newcommand{\siso}[1]{\begin{eqnarray*}\left.\begin{array}{rcl}#1\end{array}\right\}\text{ in }\Omega \times (0,T)\end{eqnarray*}}
+\newcommand{\bF}{{\mathbf{F}}}
+% Mostrar exercicio que falta
+\newcommand{\falta}[1]{{\color{red}\bf #1}}
+\newcommand{\red}[1]{{\color{red}\bf #1}}
+\newcommand{\violet}[1]{{\color{violet}\bf #1}}
+% Mostrar exercicio que esta OK!
+\newcommand{\white}[1]{{\color{white}\bf #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+\newcommand{\ok}[1]{{\color{blue}\bf #1}}
+\newcommand{\green}[1]{{\color{OliveGreen}\bf #1}}
+%Apendice
+\newcommand{\appsection}[1]{\let\oldthesection\thesection
+  \renewcommand{\thesection}{Ap\^endice \oldthesection}
+  \section{#1}\let\thesection\oldthesection}
+
+%Anexo
+\newcommand{\anexo}[1]{\let\oldthesection\thesection
+  \renewcommand{\thesection}{Anexo \oldthesection}
+  \section{#1}\let\thesection\oldthesection}
+
+%%Exercicio
+%\newcommand{\exercicio}[1]{\let\oldthesection\thesection
+%  \renewcommand{\thesection}{Exerc\'icio \oldthesection}
+%  \section{#1}\let\thesection\oldthesection}
+\newcounter{excount}
+\setcounter{excount}{0}
+\newenvironment{exercicio}
+{% This is the begin code
+\stepcounter{excount} {\bf Exerc\'icio} \arabic{excount} \begin{it}
+
+}
+{% This is the end code
+\end{it} }
+
+\newcommand{\ua}[2]{\uncover<#1->{\alert<#1>{#2}}}
+
+% Mostrar exercicio que esta em duvida
+\newcommand{\duvida}[1]{{\color{blue}\bf #1}}
+
+% Chamar figura no texto
+\newcommand{\figref}[1]{Figura \ref{#1}}
+
+% Chamar programa no texto
+\newcommand{\pgref}[1]{Programa \ref{#1}}
+
+% Chamar equacao no texto
+\newcommand{\eqnref}[1]{equa\c c\~ao (\ref{#1})}
+
+% Chamar tabela no texto
+\newcommand{\tabref}[1]{tabela \ref{#1}}
+
+% norma
+\newcommand{\norma}[2]{\left\lVert #1 \right\rVert_{#2}}
+
+% Barra \
+\newcommand{\barra}{\backslash}
+
+% Inserir figura: figura,legenda,label,tamanho
+\newcommand{\imagem}[4]{\begin{figure}[!htbp]
+\centering
+\includegraphics[width=#4\linewidth]{#1.eps}
+\caption{#2}\label{#3}
+\end{figure}}
+
+% Inserir figura: figura,legenda,figura,legenda,legenda,label,tamanho
+\newcommand{\subimagem}[7]{\begin{figure}[!htbp]
+\centering
+\subfigure[#6:a][#2]{\includegraphics[width=#7\linewidth]{#1.eps}}
+\subfigure[#6:b][#4]{\includegraphics[width=#7\linewidth]{#3.eps}}
+\caption{#5}\label{#6}
+\end{figure}}
+
+% Configurar cabecalho: disciplina, numero da lista
+\newcommand{\cabecalho}[2]{
+\title{#1}
+\subtitle{#2\textordfeminine Prova}
+\author{Ernesto Augusto Bueno da Fonseca Lima \and Katia Prado Fernandes\\{\em \small Laborat\'orio Nacional de Computa\c c\~ao Cient\'ifica (LNCC/MCT)}\\{\em \small Sala 1A-44 -- Ramal 6173}}
+\date{\today}
+\fancyhead[LO]{\includegraphics[width=0.15 \hsize]{lncc.eps}}
+\fancyhead[CO]{\small\it GB-080 An\'alise Num\'erica de Elementos Finitos}
+\fancyhead[RE]{\includegraphics[width=0.15 \hsize]{lncc.eps}}
+\fancyhead[CE]{\small\it GB-080 An\'alise Num\'erica de Elementos Finitos}
+}
+
+% Enumerar
+\newcommand{\ben}{\begin{itemize}}%enumerate}}
+\newcommand{\een}{\end{itemize}}%enumerate}}
+
+% Equacao enumerada
+\newcommand{\beqn}{\begin{eqnarray}}
+\newcommand{\eeqn}{\end{eqnarray}}
+
+% Equacao sem numero
+\newcommand{\bseqn}{\begin{eqnarray*}}
+\newcommand{\eseqn}{\end{eqnarray*}}
+
+% Derivada parcial: x, y, grau
+\newcommand{\pf}[3]{\frac{\partial^{#3} #1}{\partial #2^{#3}}}
+
+% Derivada: x, y, grau
+\newcommand{\df}[3]{\frac{d^{#3} #1}{d #2^{#3}}}
+
+%Inserir Programa
+\newcommand{\programa}[4]{\lstinputlisting[language=#1, label=hello, caption={#3}, label=#4]{#2}}
+
+% Conjuntos U e V
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\Ss}{\mathcal{S}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\HH}{\mathcal{H}}
+\newcommand{\J}{\mathcal{J}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\K}{\mathcal{K}}
+\newcommand{\Q}{\mathcal{Q}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+% Seno
+\newcommand{\sen}{\textrm{sen}}
+
+% Cosseno
+\newcommand{\cosseno}{\textrm{cos}}
+
+% Limite
+\newcommand{\limite}[1]{\lim_{#1\rightarrow \infty}}
+\newcommand{\limitez}[1]{\lim_{#1\rightarrow 0}}
+\newcommand{\limitezd}[1]{\lim_{#1\rightarrow 0^+}}
+
+% Somatorio
+\newcommand{\somatorio}{\sum_{n=1}^{\infty}}
+
+% Modulo
+\newcommand{\modulo}[1]{\left\lvert #1 \right\rvert}
+
+% Big parenteses
+\newcommand{\bpar}[1]{\left( #1 \right)}
+
+% Big colchetes
+\newcommand{\bcol}[1]{\left[ #1 \right]}
+
+% Big chaves
+\newcommand{\bcha}[1]{\left\{ #1 \right\}}
