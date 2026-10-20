@@ -1,9 +1,5 @@
 # Deep-Leaning-Architecture-Selection
-A bayesian evidence based method to find a valid Temporal convolutional Network (TCN) architecture for Blood Glucose prediction. 
-
-# tcn_diabetes
-
-This repository contains research code, reference papers, and presentation materials related to diabetes modeling and Temporal Convolutional Networks (TCNs).
+A bayesian evidence based method to find a valid Temporal convolutional Network (TCN) architecture for Blood Glucose prediction. This repository contains research code, reference papers, and presentation materials related to diabetes modeling and Temporal Convolutional Networks (TCNs).
 
 ## Repository Structure
 
